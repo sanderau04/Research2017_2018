@@ -1,7 +1,9 @@
-function [analysisTableDetails, analysisTableSummary, debuggingTable] = speechPauseAnalysis(...
+function [analysisTableDetails, analysisTableSummary, debuggingTable, indSpeechStart, indSpeechStop] = speechPauseAnalysis(...
     detectionWTime,... %Matrix of refined speech detection and corresponding sample times
     noiseThresholdWavPos,... %upper threshold of background noise waveform amplitude
-    noiseThresholdWavNeg) %lower threshold of background noise waveform amplitude
+    noiseThresholdWavNeg,...
+    waveformWithTime,...
+    Fs) %lower threshold of background noise waveform amplitude
 
 recordStart = detectionWTime(1,1); %saving start time of recording
 recordEnd = detectionWTime(1,length(detectionWTime(1,:))); %saving stop time of recording
@@ -12,7 +14,9 @@ indSpeechStart = find(dx == 1);
 indSpeechStop = find(dx == -1);
 timeStartSpeech = detectionWTime(1,indSpeechStart); %assign array of all speech start times
 timeStopSpeech = detectionWTime(1,indSpeechStop); %assign array of all speech stop times
-if((length(timeStartSpeech)) == 0 || (length(timeStopSpeech) == 0))
+wavSpeechpresent = waveformWithTime(1,indSpeechStart);
+
+if((length(timeStartSpeech)) == 0 || (length(timeStopSpeech) == 0))%Debugging for constant speech presence or constant speech non present
     initialSpeechLag = 0;
     finalSpeechLag = 0;
     timeStopPause = 0;
@@ -48,6 +52,13 @@ for k = 1:length(timeStartPause)
     speechPauseNumber(k) = k;
     k = k + 1;
 end
+%% Frequency analysis for speech present Audio
+for z = 1:length(indSpeechStart)
+    epoch = waveformWithTime(1,indSpeechStart(z):indSpeechStop(z)); %extracting "zth" speech epoch 
+    [pxx, f] = pwelch(epoch,[],[],[],Fs); %taking pwelch of speech epoch
+    [~,I] = max(pxx); %finding max power density of epoch frequency distribution
+    maxF(z) = f(I) %extracting frequency relating to highest power density
+   end
 
 %% Calculated overall summary results from recording sample
 averageSpeechPauseLength = mean(speechPauseDuration);
