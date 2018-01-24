@@ -12,7 +12,17 @@ if(choice == 1)
     filename = uigetfile;
     [noiseThresholdWavPos, noiseThresholdWavNeg] = findThresholdImport(filename);
     [myRecording, Fs] = audioread(filename);
+    if(length(myRecording(1,:)) ~= 1)
+        myRecording = sum(myRecording, 2) / size(myRecording,2);
+    end
+    audioName = filename;
+    idx = find(ismember(audioName,'./\:'),1,'last');
+if audioName(idx) == '.'; audioName(idx:end) = []; end
+
 else
+    prompt = 'Input filename for recording: ';
+    audioName = input(prompt, 's');
+    filename = audioName;
     Fs = 48000; %sampling frequency
     recObj = audiorecorder(Fs, 16 , 1); %create recording object to save audio data
     [noiseThresholdWavPos, noiseThresholdWavNeg] = findThresholdLive(recObj); %return noise thresholds from 10 seconds of speech absent audio recording
@@ -28,33 +38,20 @@ waveformWithTime(2,:) = t;
     noiseThresholdWavPos,...
     noiseThresholdWavNeg,...
     Fs); %return raw speech detection and refined speech detection with respective sample time
-[analysisTableDetails, analysisTableSummary, debuggingTable, wavSpeechPresent] = speechPauseAnalysis(detectionWTime,...
+[analysisTablePauseDetails, analysisTableSpeechDetails, analysisTableSummary, debuggingTable] = speechPauseAnalysis(detectionWTime,...
     noiseThresholdWavPos,...
     noiseThresholdWavNeg,...
     waveformWithTime,...
     Fs); %return 3 tables of specific speech analysis featurs, save xlsx file of all tables
-%AnalysisResults = ['AnalysisResults_',datestr(now, 'HH_MM_SS_dd-mmm-yyyy'),'.mat'];
+AnalysisResults = ['Results_', audioName,'_',datestr(now, 'dd-mmm-yyyy_HH_MM_SS_'),'.mat'];
 
 
 %% Graphical Information
 VisualAnalysis = figure('Name', 'Speech Detection', 'NumberTitle', 'off');
 
-%graph of raw speech detection superimposed over enveloped waveform and
-%noise thresholds
-subplot(2,1,1);
-envelope(myRecording, 800, 'peak');
-hold on 
-plot(detectionRaw);
-hlinePos = refline([0 noiseThresholdWavPos]);
-hlinePos.Color = 'g';
-hlineNeg = refline([0 noiseThresholdWavNeg]);
-hlineNeg.Color = 'g';
-title('Signal Data with Envelope and Speech Detection Unfiltered')
-legend('signal','envelope','speech detection unfiltered', 'Location','southwest')
 
 %graph of refined (medfilt1) speech detection superimposed over enveloped
 %waveform and noise thresholds
-subplot(2,1,2);
 envelope(myRecording, 800, 'peak');
 hold on 
 plot(detectionWTime(2,:));
@@ -65,4 +62,4 @@ hlineNeg.Color = 'g';
 title('Signal Data with Envelope and Speech Detection Filtered')
 legend('signal','envelope','speech detection filtered', 'Location','southwest')
 
-%save (AnalysisResults, 'analysisTableSummary', 'analysisTableDetails', 'debuggingTable', 'VisualAnalysis');
+save (AnalysisResults, 'analysisTableSummary', 'analysisTablePauseDetails', 'analysisTableSpeechDetails', 'debuggingTable', 'VisualAnalysis', 'filename');

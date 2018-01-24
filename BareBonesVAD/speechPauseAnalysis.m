@@ -1,4 +1,4 @@
-function [analysisTableDetails, analysisTableSummary, debuggingTable, indSpeechStart, indSpeechStop] = speechPauseAnalysis(...
+function [analysisTablePauseDetails, analysisTableSpeechDetails, analysisTableSummary, debuggingTable] = speechPauseAnalysis(...
     detectionWTime,... %Matrix of refined speech detection and corresponding sample times
     noiseThresholdWavPos,... %upper threshold of background noise waveform amplitude
     noiseThresholdWavNeg,...
@@ -52,39 +52,47 @@ for k = 1:length(timeStartPause)
     speechPauseNumber(k) = k;
     k = k + 1;
 end
+
+for w = 1:length(timeStartSpeech)
+    speechDuration(w) = timeStopSpeech(w) - timeStartSpeech(w);
+    speechNumber(w)= w;
+    w = w + 1;
+end
+    
 %% Frequency analysis for speech present Audio
 for z = 1:length(indSpeechStart)
     epoch = waveformWithTime(1,indSpeechStart(z):indSpeechStop(z)); %extracting "zth" speech epoch 
     [pxx, f] = pwelch(epoch,[],[],[],Fs); %taking pwelch of speech epoch
     [~,I] = max(pxx); %finding max power density of epoch frequency distribution
-    maxF(z) = f(I) %extracting frequency relating to highest power density
+    maxF(z) = f(I); %extracting frequency relating to highest power density
    end
 
 %% Calculated overall summary results from recording sample
 averageSpeechPauseLength = mean(speechPauseDuration);
 stdSpeechPauseLength = std(speechPauseDuration);
 speechPauseOccuranceTotal = length(speechPauseNumber);
+averageSpeechLength = mean(speechDuration);
+stdSpeechLength = std(speechDuration);
+speechOccuranceTotal = length(speechNumber);
 %% Creating variables to be used in the debugging process
-detectionError = zeros(1,length(speechPauseDuration));
-thresholdArray = zeros(1,length(speechPauseDuration));
+detectionError = zeros(1,length(speechDuration));
+thresholdArray = zeros(1,length(speechDuration));
 thresholdArray(1) = noiseThresholdWavPos;
 thresholdArray(2) = noiseThresholdWavNeg;
-pauseThresholdLow = averageSpeechPauseLength - (3 * stdSpeechPauseLength);
-indError = find(speechPauseDuration < pauseThresholdLow);
-detectionError(indError) = speechPauseDuration(indError);
+ThresholdLow = averageSpeechLength - (2 * stdSpeechLength);
+indError = find(speechDuration < ThresholdLow);
+detectionError(indError) = speechDuration(indError);
 end
 %% Assigning tables to be saved in a mat file
-debuggingTable = table(thresholdArray',detectionError'); %Table 1 of 3: display of variables to be used in debugging process
-analysisTableDetails = table(speechPauseNumber',timeStartPause',timeStopPause',speechPauseDuration'); %Table 2 of 3: detailed information of speech analysis
-analysisTableSummary = table(initialSpeechLag, finalSpeechLag, averageSpeechPauseLength, stdSpeechPauseLength, speechPauseOccuranceTotal); %Table 3 of 3: summary information of speech analysis
-analysisTableDetails.Properties.VariableNames = {'SP_Number' 'SP_Start_Time' 'SP_End_Time' 'SP_Duration'};
-analysisTableSummary.Properties.VariableNames = {'Initial_Speech_Lag' 'Final_Speech_Lag' 'Average_SP_Length' 'Standard_Deviation_of_SP_Length' 'SP_Total_Occurance'};
-debuggingTable.Properties.VariableNames = {'Pos_Neg_Noise_Threshold' 'Pause_Detection_Error'};
+
+debuggingTable = table(thresholdArray', speechNumber', detectionError'); %Table 1 of 4: display of variables to be used in debugging process
+analysisTablePauseDetails = table(speechPauseNumber',timeStartPause',timeStopPause',speechPauseDuration'); %Table 2 of 4: detailed information of speech analysis
+analysisTableSpeechDetails = table(speechNumber',timeStartSpeech',timeStopSpeech',speechDuration', maxF');
+analysisTableSummary = table(initialSpeechLag, finalSpeechLag, averageSpeechPauseLength, stdSpeechPauseLength, speechPauseOccuranceTotal, averageSpeechLength, stdSpeechLength, speechOccuranceTotal); %Table 4 of 4: summary information of speech analysis
+analysisTablePauseDetails.Properties.VariableNames = {'SP_Number' 'SP_Start_Time' 'SP_End_Time' 'SP_Duration'};
+analysisTableSpeechDetails.Properties.VariableNames = {'Speech_Epoch_Number' 'Speech_Start_Time' 'Speech_End_Time' 'Speech_Epoch_Duration', 'Speech_Epoch_Avg_Frequency'};
+analysisTableSummary.Properties.VariableNames = {'Initial_Speech_Lag' 'Final_Speech_Lag' 'Average_SP_Length' 'Standard_Deviation_of_SP_Length' 'SP_Total_Occurance' 'Average_Speech_Epoch_Length', 'Standard_Deviation_of_Speech_Epoch_Length' 'Speech_Epoch_Total_Occurance'};
+debuggingTable.Properties.VariableNames = {'Pos_Neg_Noise_Threshold' 'Speech_Epoch_Number' 'Speech_Detection_Error'};
 
 
-
-
-
-
-end
 
