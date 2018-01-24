@@ -8,33 +8,19 @@ waitfor(GUIobj);
 %% Data read for either live recording or imported file and noise threshold
 startPrompt = 'Press [1] to import file, press [2] to live record: ';
 choice = input(startPrompt);
-x = 1;
-filename = [1, 1, 1];
-check = 0;
-check2 = 0;
 
-while x ~= (length(filename) + 1)
-clear waveformWithTime;
+
 if(choice == 1)
-   
-    if (check == 0)
     [filename, pathname, filterindex] = uigetfile({'*.wav; *.ogg; *.flac; *.au; *.aiff; *.aif; *.aifc; *.mp3; *.m4a; *.mp4', 'All Audio Files';...
     '*.*', 'All Files'}, 'Pick an Audio File', 'MultiSelect', 'on');
-    check = 1;
-    end
-    audioFile = char(filename(x));
-    if (check2 == 0)
-    [noiseThresholdWavPos, noiseThresholdWavNeg] = findThresholdImport(audioFile);
-    check2 = 1;
-    end
-    [myRecording, Fs] = audioread(audioFile);
+    [noiseThresholdWavPos, noiseThresholdWavNeg] = findThresholdImport(filename);
+    [myRecording, Fs] = audioread(filename);
     if(length(myRecording(1,:)) ~= 1)
+if audioName(idx) == '.'; audioName(idx:end) = []; end
         myRecording = sum(myRecording, 2) / size(myRecording,2);
     end
-    audioName = audioFile;
+    audioName = filename;
     idx = find(ismember(audioName,'./\:'),1,'last');
-if audioName(idx) == '.'; audioName(idx:end) = []; end
-    
 end
 if(choice ==2)
     prompt = 'Input filename for recording: ';
@@ -79,6 +65,4 @@ hlineNeg.Color = 'g';
 title('Signal Data with Envelope and Speech Detection Filtered')
 legend('signal','envelope','speech detection filtered', 'Location','southwest')
 
-save (AnalysisResults, 'analysisTableSummary', 'analysisTablePauseDetails', 'analysisTableSpeechDetails', 'debuggingTable', 'filename');
-x = x + 1;
-end
+save (AnalysisResults, 'analysisTableSummary', 'analysisTablePauseDetails', 'analysisTableSpeechDetails', 'debuggingTable', 'VisualAnalysis', 'filename');
