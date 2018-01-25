@@ -12,27 +12,27 @@ function [noiseThresholdWavPos,noiseThresholdWavNeg] = ...
         k = k + 1;
     end
     
-    %% Prompt user for first 5 second imported recording information
+    %% Prompt user for first at least 10 second imported recording information
     fprintf('The following is the first 5 seconds of your recording\n\n')
     pause(2);
     sound(noiseDataPlay,Fs);
-    fprintf('This figure represents the waveform of the entire recording');
+    fprintf('This figure represents the waveform of the entire recording\n');
     f1 = figure('Name', 'Full Recording Waveform', 'NumberTitle', 'off'); 
     plot(time,noiseData);
     title('Waveform of Entire Imported Recording');
     xlabel('Time (s)');
     ylabel('Amplitude');
     pause(3)
-    disp('please click on two points on the graph enclosing AT LEAST 10 seconds of the recording where speech is NOT PRESENT')
-    [t, amp] = ginput(2);
+    disp('Please click on two points on the graph enclosing AT LEAST 10 seconds of the recording where speech is NOT PRESENT')
+    [t, amp] = ginput(4);
     
     t = round(t*Fs);
    
     
-    if(length(t) == 2)
-        noiseData = noiseData(t(1):t(2));
+    if(length(t) == 4)
+        noiseData = noiseData([t(1):t(2) t(3):t(4)]);
     end
-    
+    close(f1)
 [yUpper, yLower] = envelope(noiseData, 1000, 'peak');
 
 %% Create statistical noise threshold from given information

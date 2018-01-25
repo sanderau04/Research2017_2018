@@ -1,0 +1,100 @@
+function [analysisTablePauseDetails, analysisTableSpeechDetails, analysisTableSummary] = speechAnalysis(...
+    detectionWTime,... %Matrix of refined speech detection and corresponding sample times
+    noiseThresholdWavPos,... %upper threshold of background noise waveform amplitude
+    noiseThresholdWavNeg,...
+    waveformWithTime,...
+    Fs) %lower threshold of background noise waveform amplitude
+
+recordStart = detectionWTime(1,1); %saving start time of recording
+recordEnd = detectionWTime(1,length(detectionWTime(1,:))); %saving stop time of recording
+
+%% Performing logical indexing on speech detection to determine speech start and stop times throughout entire recording sample
+dx = diff(detectionWTime(2,:));
+indSpeechStart = find(dx == 1);
+indSpeechStop = find(dx == -1);
+timeStartSpeech = detectionWTime(1,indSpeechStart); %assign array of all speech start times
+timeStopSpeech = detectionWTime(1,indSpeechStop); %assign array of all speech stop times
+wavSpeechpresent = waveformWithTime(1,indSpeechStart);
+
+if((length(timeStartSpeech)) == 0 || (length(timeStopSpeech) == 0))%Debugging for constant speech presence or constant speech non present
+    initialSpeechLag = 0;
+    finalSpeechLag = 0;
+    timeStopPause = 0;
+    timeStartPause = 0;
+    speechPauseDuration = 0;
+    speechPauseNumber = 0;
+    averageSpeechPauseLength = 0;
+    stdSpeechPauseLength = 0;
+    speechPauseOccuranceTotal = 0;
+    detectionError = 0;
+    thresholdArray = 0;
+    
+else
+%% Assigning Variables for initial speech lag and final speech lag
+initialSpeechLag = timeStartSpeech(1) - recordStart;
+finalSpeechLag = recordEnd - timeStopSpeech(length(timeStopSpeech));
+
+%% Determining speech pause start, stop and duration
+    
+for x = 1:length(timeStartSpeech)
+    if(x ~= 1)
+        timeStopPause(x - 1) = timeStartSpeech(x);
+    end
+    
+    if(x ~= length(timeStopSpeech))
+        timeStartPause(x) = timeStopSpeech(x);
+    end
+x = x + 1;
+end
+
+for k = 1:length(timeStartPause)
+    speechPauseDuration(k) = timeStopPause(k) - timeStartPause(k);
+    speechPauseNumber(k) = k;
+    k = k + 1;
+end
+
+for w = 1:length(timeStartSpeech)
+    speechDuration(w) = timeStopSpeech(w) - timeStartSpeech(w);
+    speechNumber(w)= w;
+    w = w + 1;
+end
+    
+%% Frequency analysis for speech present Audio
+for z = 1:length(indSpeechStart)
+    epoch = waveformWithTime(1,indSpeechStart(z):indSpeechStop(z)); %extracting "zth" speech epoch
+    freq = meanfreq(epoch,Fs);
+    [pxx, f] = pwelch(epoch,[],[],[],Fs); %taking pwelch of speech epoch
+    [~,I] = max(pxx); %finding max power density of epoch frequency distribution
+    meanF(z) = freq;
+    maxF(z) = f(I); %extracting frequency relating to highest power density  
+    
+end
+
+indLess500 = find(maxF < 500);
+indGreat500 = find(maxF >= 500);
+%% Calculated overall summary results from recording sample
+averageSpeechPauseLength = mean(speechPauseDuration);
+stdSpeechPauseLength = std(speechPauseDuration);
+speechPauseOccuranceTotal = length(speechPauseNumber);
+averageSpeechLength = mean(speechDuration);
+stdSpeechLength = std(speechDuration);
+speechOccuranceTotal = length(speechNumber);
+percentSpeechPresent = (sum(speechDuration)/ (sum(speechPauseDuration) + sum(speechDuration)))*100;
+percentPausePresent = 100 - percentSpeechPresent;
+percentFreqLT500 = (length(indLess500) / (length(indLess500) + length(indGreat500))) * 100;
+percentFreqMT500 = 100 - percentFreqLT500;
+stdMaxF = std(maxF);
+stdMeanF = std(meanF);
+end
+%% Assigning tables to be saved in a mat file
+
+analysisTablePauseDetails = table(speechPauseNumber',timeStartPause',timeStopPause',speechPauseDuration'); %Table 2 of 4: detailed information of speech analysis
+analysisTableSpeechDetails = table(speechNumber',timeStartSpeech',timeStopSpeech',speechDuration', maxF', meanF');
+analysisTableSummary = table(initialSpeechLag, finalSpeechLag, averageSpeechPauseLength, stdSpeechPauseLength, speechPauseOccuranceTotal, averageSpeechLength, stdSpeechLength, speechOccuranceTotal, percentPausePresent, percentSpeechPresent, percentFreqLT500, percentFreqMT500, stdMaxF, stdMeanF); %Table 4 of 4: summary information of speech analysis
+analysisTablePauseDetails.Properties.VariableNames = {'SP_Number' 'SP_Start_Time' 'SP_End_Time' 'SP_Duration'};
+analysisTableSpeechDetails.Properties.VariableNames = {'Speech_Epoch_Number' 'Speech_Start_Time' 'Speech_End_Time' 'Speech_Epoch_Duration' 'Speech_Epoch_Max_Frequency' 'Speech_Epoch_Mean_Frequency'};
+analysisTableSummary.Properties.VariableNames = {'Initial_Speech_Lag' 'Final_Speech_Lag' 'Average_SP_Length' 'Standard_Deviation_of_SP_Length' 'SP_Total_Occurance' 'Average_Speech_Epoch_Length', 'Standard_Deviation_of_Speech_Epoch_Length' 'Speech_Epoch_Total_Occurance' 'Percent_Pause_Present' 'Percent_Speech_Present' 'Percent_Freq_Below_500Hz' 'Percent_Above_500Hz' 'Standard_Deviation_Max_Frequency' 'Standard_Deviation_Mean_Frequency'};
+
+
+
+

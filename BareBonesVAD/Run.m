@@ -9,11 +9,11 @@ waitfor(GUIobj);
 startPrompt = 'Press [1] to import file, press [2] to live record: ';
 choice = input(startPrompt);
 x = 1;
-filename = [1, 1, 1];
+filename = {1, 1, 1};
 check = 0;
 check2 = 0;
 
-while x ~= (length(filename) + 1)
+while (x ~= (length(filename) + 1) && (iscell(filename) == 1))
 clear waveformWithTime;
 if(choice == 1)
    
@@ -22,7 +22,13 @@ if(choice == 1)
     '*.*', 'All Files'}, 'Pick an Audio File', 'MultiSelect', 'on');
     check = 1;
     end
-    audioFile = char(filename(x));
+    if(iscell(filename) == 1)
+        audioFile = char(strcat(pathname,filename(x)));
+        audioName = char(filename(x));
+    else
+        audioFile = strcat(pathname,filename);
+        audioName = filename;
+    end
     if (check2 == 0)
     [noiseThresholdWavPos, noiseThresholdWavNeg] = findThresholdImport(audioFile);
     check2 = 1;
@@ -31,7 +37,7 @@ if(choice == 1)
     if(length(myRecording(1,:)) ~= 1)
         myRecording = sum(myRecording, 2) / size(myRecording,2);
     end
-    audioName = audioFile;
+    
     idx = find(ismember(audioName,'./\:'),1,'last');
 if audioName(idx) == '.'; audioName(idx:end) = []; end
     
@@ -55,12 +61,12 @@ waveformWithTime(2,:) = t;
     noiseThresholdWavPos,...
     noiseThresholdWavNeg,...
     Fs); %return raw speech detection and refined speech detection with respective sample time
-[analysisTablePauseDetails, analysisTableSpeechDetails, analysisTableSummary, debuggingTable] = speechPauseAnalysis(detectionWTime,...
+[analysisTablePauseDetails, analysisTableSpeechDetails, analysisTableSummary] = speechAnalysis(detectionWTime,...
     noiseThresholdWavPos,...
     noiseThresholdWavNeg,...
     waveformWithTime,...
     Fs); %return 4 tables of specific speech analysis featurs, save xlsx file of all tables
-AnalysisResults = ['Results_', audioName,'_',datestr(now, 'dd-mmm-yyyy_HH_MM_SS_'),'.mat'];
+AnalysisResults = ['ResultsFolder/Results_', audioName,'_',datestr(now, 'dd-mmm-yyyy_HH_MM_SS_'),'.mat'];
 
 
 %% Graphical Information
@@ -79,6 +85,6 @@ hlineNeg.Color = 'g';
 title('Signal Data with Envelope and Speech Detection Filtered')
 legend('signal','envelope','speech detection filtered', 'Location','southwest')
 
-save (AnalysisResults, 'analysisTableSummary', 'analysisTablePauseDetails', 'analysisTableSpeechDetails', 'debuggingTable', 'filename');
+save (AnalysisResults, 'analysisTableSummary', 'analysisTablePauseDetails', 'analysisTableSpeechDetails', 'filename');
 x = x + 1;
 end
