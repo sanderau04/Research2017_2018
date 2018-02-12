@@ -26,11 +26,11 @@ xlabel('Time (s)');
 ylabel('Amplitude');
 pause(3)
 disp('Please click on two points on the graph enclosing AT LEAST 10 seconds of the recording where speech is NOT PRESENT')
-[t, ~] = ginput(4); % Input 4 data points and recieve their timestamps.
+[t, ~] = ginput(2); % Input 4 data points and recieve their timestamps.
 t = round(t*Fs); % Convert timestamps to sample numbers.
 
-if(length(t) == 4)
-    noiseData = noiseData([t(1):t(2) t(3):t(4)]); % Create noise data from 4 data point inputs.
+if(length(t) == 2)
+    noiseData = noiseData(t(1):t(2)); % Create noise data from 4 data point inputs.
 end
 close(f1)
 

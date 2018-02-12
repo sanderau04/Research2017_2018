@@ -9,6 +9,7 @@ function [analysisTablePauseDetails, analysisTableSpeechDetails, analysisTableSu
 recordStart = detectionWTime(1,1); % Assigning start time of recording to variable recordStart
 recordEnd = detectionWTime(1,length(detectionWTime(1,:))); % Assigning stop time of recording to variable recordEnd
 
+
 %% Speech Detection
 % Performing logical indexing on speech detection to determine speech start
 % and stop times throughout entire recording sample.
@@ -35,8 +36,16 @@ if((length(timeStartSpeech)) == 0 || (isempty(timeStopSpeech) == 1))
 else
     %% Speech Analysis: Speech Lag
     %  Assigning variables for initial speech lag and final speech lag.
-    initialSpeechLag = timeStartSpeech(1) - recordStart;
-    finalSpeechLag = recordEnd - timeStopSpeech(length(timeStopSpeech));
+    if(timeStartSpeech(1) ~= 0)
+        initialSpeechLag = timeStartSpeech(1) - recordStart;
+    else
+        initialSpeechLag = 0;
+    end
+    if(timeStopSpeech(length(timeStopSpeech)) ~= recordEnd)
+        finalSpeechLag = recordEnd - timeStopSpeech(length(timeStopSpeech));
+    else
+        finalSpeechLag = 0;
+    end
     
     %% Speech Analysis: Speech Pause
     % Determining speech pause start, stop and duration.

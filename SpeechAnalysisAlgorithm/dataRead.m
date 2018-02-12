@@ -1,4 +1,4 @@
-function [Fs, audioName, myRecording] = dataRead(choice, x)
+function [Fs, audioName, waveformWithTime, myRecording] = dataRead(choice, x)
 % dataRead function performs the intial audio processing for a live or
 % imported file. Calls upon noise threshold functions within itself.
 %   choice == 1 corresponds with imported file(s).
@@ -53,6 +53,13 @@ if(choice ==2)
     [noiseThresholdWavPos, noiseThresholdWavNeg] = findThresholdLive(recObj); %return noise thresholds from 10 seconds of speech absent audio recording
     myRecording = liveRecording(recObj);
 end
+
+dt = 1/Fs;
+    t = 0:dt:length(myRecording)*dt - dt; %array of each sample in time domain
+    waveformWithTime = zeros(2,(length(myRecording)+2));
+    waveformWithTime(1,(2:end - 1)) = myRecording;
+    waveformWithTime(2,(2:end - 1)) = t;
+    waveformWithTime(2,end) = t(end);
 
 end
 

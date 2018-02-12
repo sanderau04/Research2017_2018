@@ -36,8 +36,12 @@ end
 detectionMed = medfilt1(detectionRaw,10000);
 
 % Assign filtered detection and sample timestamps to detectionWTime matrix.
-detectionWTime(1,:) = time;
-detectionWTime(2,:) = detectionMed;
+detection1(1,:) = time;
+detection1(2,:) = detectionMed;
+% Inserting leading and trailing zero to debug for speechAnalysis.
+detectionWTime = zeros(2,(length(detection1(1,:)) + 2));
+detectionWTime(:,2:(end - 1)) = detection1;
+detectionWTime(1,end) = detection1(1,end);
 
 % Due to median filter, certain values of speech detection are 0.5 (at 0
 % to 1 transitions). Reassign these 0.5 values to 0 with for loop below.

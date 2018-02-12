@@ -13,24 +13,20 @@ startPrompt2 = 'Press [1] for NO figure(s), press [2] for figure(s): ';
 choice2 = input(startPrompt2);
 
 %% Initiate Functions
-% Call all functions relating to speech detection and analysis. These
-% functions include: dataRead, findThresholdImport, findThresholdLive,
-% liveRecording, speechAnalysis, and speechDetection
+
 while (x ~= (length(filename) + 1) && (iscell(filename) == 1)) % To be implemented for multi file select.
     clear waveformWithTime;
-    [Fs, audioName, myRecording] = dataRead(choice, x);
-    dt = 1/Fs;
-    t = 0:dt:length(myRecording)*dt - dt; %array of each sample in time domain
-    waveformWithTime(1,:) = myRecording;
-    waveformWithTime(2,:) = t;
+    [Fs, audioName, waveformWithTime, myRecording] = dataRead(choice, x);
+    
     
     % Return raw speech detection and refined speech detection with
     % respective sample time.
-    [detectionWTime, detectionRaw] = speechDetection(myRecording,...
+    [detectionWTime] = speechDetection(myRecording,...
         noiseThresholdWavPos,...
         noiseThresholdWavNeg,...
         Fs);
-    % Return all tables pertaining to speech analysis performed in function
+    % Return all tables pertaining to speech analysis performed in
+    % function
     % speechAnalysis
     [analysisTablePauseDetails, analysisTableSpeechDetails,...
         analysisTableSummary] = speechAnalysis(...
