@@ -28,6 +28,7 @@ if(choice == 1)
     end
     if (check2 == 0) % Condition allows findThresholdImport to run only once
         [noiseThresholdWavPos, noiseThresholdWavNeg] = findThresholdImport(audioFile);
+        %pxxFreq = findFrequencyImport(audioFile);
         check2 = 1;
     end
     [myRecording, Fs] = audioread(audioFile); % Extract waveform data from imported file(s)

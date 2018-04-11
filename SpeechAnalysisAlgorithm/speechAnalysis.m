@@ -1,4 +1,4 @@
-function [analysisTablePauseDetails, analysisTableSpeechDetails, analysisTableSummary] = speechAnalysis(...
+function [analysisTablePauseDetails, analysisTableSpeechDetails, analysisTableSummary, detectFreqFilt, energyMatrix] = speechAnalysis(...
     detectionWTime,... % Matrix of refined speech detection and corresponding sample times.
     waveformWithTime,... % Matrix of raw waveform and corresponding sample times
     Fs)
@@ -74,16 +74,37 @@ else
     end
     %% Speech Analysis: Frequency
     % Frequency analysis for speech present audio.
+    detectFreqFilt = zeros(length(detectionWTime(1,:)),1);
+    %fig = figure
+    title('pwelch')
     for z = 1:length(indSpeechStart)
         epoch = waveformWithTime(1,indSpeechStart(z):indSpeechStop(z)); % Extracting "zth" speech epoch.
         freq = meanfreq(epoch,Fs); % Taking meanfreq of speech epoch.
         [pxx, f] = pwelch(epoch,[],[],[],Fs); % Taking pwelch of speech epoch.
         [~,I] = max(pxx); % Finding max power density of epoch frequency distribution.
-        meanF(z) = freq; % Extracting frequency relating to the average foun in each speech epoch.
+        freqCutOff = find(f <= 8000);
+        energySum = sum(pxx(freqCutOff));
+        i = 1;
+        for y = 100:100:8000 % Finding power within incrementing 100 HZ
+            freqBand = find((f > y - 100 ) & (f <= y));
+            sumFreqBandEnergy = sum(pxx(freqBand));
+            avgEnergyForBand(i) = (sumFreqBandEnergy / energySum) * 100;
+            i = i + 1;
+        end
+        energyMatrix(:,z) = avgEnergyForBand;
+        meanF(z) = freq; % Extracting frequency relating to the average found in each speech epoch.
         maxF(z) = f(I); % Extracting frequency relating to highest power density.
+        percent500More(z) = 1; % PLACE HOLDERS FOR FREQUENCY BAND TESTING
+        percent500Less(z) = 1; % PLACE HOLDERS FOR FREQUENCY BAND TESTING
+        %loglog(f,pxx)
+        %hold on
+        %{
+        h = kstest2(pxxFreq,pxx,'Alpha',0.0001);
+        if(h == 0 || h == 1)
+           detectFreqFilt(indSpeechStart(z):indSpeechStop(z)) = 1; 
+        end
+        %}
     end
-    indLess500 = find(maxF < 500); % Extracting indices where array maxF is below 500 Hz.
-    indGreat500 = find(maxF >= 500); % Extracting indeices where array maxF is above or equal to 500 Hz.
     %% Speech Analysis: Summary
     % Calculated overall summary results from recording sample.
     averageSpeechPauseLength = mean(speechPauseDuration);
@@ -94,8 +115,8 @@ else
     speechOccuranceTotal = length(speechNumber);
     percentSpeechPresent = (sum(speechDuration)/ (sum(speechPauseDuration) + sum(speechDuration)))*100;
     percentPausePresent = 100 - percentSpeechPresent;
-    percentFreqLT500 = (length(indLess500) / (length(indLess500) + length(indGreat500))) * 100;
-    percentFreqMT500 = 100 - percentFreqLT500;
+    percentFreqLT500 = 1; % PLACE HOLDERS FOR FREQUENCY BAND TESTING
+    percentFreqMT500 = 1; % PLACE HOLDERS FOR FREQUENCY BAND TESTING
     stdMaxF = std(maxF);
     stdMeanF = std(meanF);
 end
@@ -107,7 +128,8 @@ analysisTablePauseDetails = table(speechPauseNumber',timeStartPause',...
     timeStopPause',speechPauseDuration');
 % Table 2 of 3: Detailed information on speech epoch analysis.
 analysisTableSpeechDetails = table(speechNumber',timeStartSpeech',...
-    timeStopSpeech',speechDuration', maxF', meanF');
+    timeStopSpeech',speechDuration', maxF', meanF',percent500Less', ...
+    percent500More');
 % Table 3 of 3: Summary of speech pause an epoch analysis and more.
 analysisTableSummary = table(initialSpeechLag, finalSpeechLag, ...
     averageSpeechPauseLength, stdSpeechPauseLength, speechPauseOccuranceTotal, ...
@@ -120,7 +142,8 @@ analysisTablePauseDetails.Properties.VariableNames = {'SP_Number' 'SP_Start_Time
 % Table 2 of 3: Table headers.
 analysisTableSpeechDetails.Properties.VariableNames = {'Speech_Epoch_Number'...
     'Speech_Start_Time' 'Speech_End_Time' 'Speech_Epoch_Duration'...
-    'Speech_Epoch_Max_Frequency' 'Speech_Epoch_Mean_Frequency'};
+    'Speech_Epoch_Max_Frequency' 'Speech_Epoch_Mean_Frequency'...
+    'Speech_Epoch_Freq_Percent_Below_500Hz' 'Speech_Epoch_Freq_Percent_Above_500Hz'};
 % Table 3 of 3: Table headers.
 analysisTableSummary.Properties.VariableNames = {'Initial_Speech_Lag' ...
     'Final_Speech_Lag' 'Average_SP_Length' 'Standard_Deviation_of_SP_Length'...

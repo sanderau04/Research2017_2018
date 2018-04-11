@@ -1,4 +1,4 @@
-clc, clear all
+clc, clear;
 global filename pathname noiseThresholdWavPos noiseThresholdWavNeg check check2;
 x = 1;
 filename = {1, 1, 1};
@@ -7,17 +7,18 @@ check = 0;
 check2 = 0;
 %% User Prompt
 % Data read for either live recording or imported file and noise threshold.
-startPrompt = 'Press [1] to import file, press [2] to live record: ';
+startPrompt = 'Press [1] to IMPORT file, press [2] to LIVE record: ';
 choice = input(startPrompt);
-startPrompt2 = 'Press [1] for NO figure(s), press [2] for figure(s): ';
+startPrompt2 = 'Press [1] for NO FIGURE(S), press [2] for FIGURE(S): ';
 choice2 = input(startPrompt2);
+startPrompt3 = 'Press [1] to SAVE analysis, press [2] to NOT SAVE analysis: ';
+choice3 = input(startPrompt3);
 
 %% Initiate Functions
 
 while (x ~= (length(filename) + 1) && (iscell(filename) == 1)) % To be implemented for multi file select.
     clear waveformWithTime;
     [Fs, audioName, waveformWithTime, myRecording] = dataRead(choice, x);
-    
     
     % Return raw speech detection and refined speech detection with
     % respective sample time.
@@ -29,21 +30,23 @@ while (x ~= (length(filename) + 1) && (iscell(filename) == 1)) % To be implement
     % function
     % speechAnalysis
     [analysisTablePauseDetails, analysisTableSpeechDetails,...
-        analysisTableSummary] = speechAnalysis(...
+        analysisTableSummary, detectFreqFilt, energyMatrix] = speechAnalysis(...
         detectionWTime,...
         waveformWithTime,...
-        Fs); %return 4 tables of specific speech analysis featurs, save xlsx file of all tables
+        Fs); %return 3 tables of specific speech analysis featurs, save xlsx file of all tables
     
     %% Graphical Information
     % Call function makePlot to create graphical representations of the
     % analysis performed.
     if(choice2 == 2)
-        [VisualAnalysis] = makePlot(detectionWTime,myRecording, noiseThresholdWavPos, noiseThresholdWavNeg);
+        [VisualAnalysis] = makePlot(detectionWTime,myRecording, noiseThresholdWavPos, noiseThresholdWavNeg, detectFreqFilt);
     end
     
     %% Saving features
     % Create timestamped mat file of full speech analysis.
-    AnalysisResults = ['ResultsFolder/Results_', audioName,'_',datestr(now, 'dd-mmm-yyyy_HH_MM_SS_'),'.mat'];
-    save (AnalysisResults, 'analysisTableSummary', 'analysisTablePauseDetails', 'analysisTableSpeechDetails', 'filename');
+    if(choice3 == 1)
+        AnalysisResults = ['ResultsFolder/Results_', audioName,'_',datestr(now, 'dd-mmm-yyyy_HH_MM_SS_'),'.mat'];
+        save (AnalysisResults, 'analysisTableSummary', 'analysisTablePauseDetails', 'analysisTableSpeechDetails', 'filename');
+    end
     x = x + 1;
 end
