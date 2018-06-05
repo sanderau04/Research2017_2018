@@ -30,8 +30,28 @@ if((length(timeStartSpeech)) == 0 || (isempty(timeStopSpeech) == 1))
     speechPauseDuration = 0;
     speechPauseNumber = 0;
     averageSpeechPauseLength = 0;
+    averageSpeechLength = 0;
     stdSpeechPauseLength = 0;
     speechPauseOccuranceTotal = 0;
+    speechNumber = 0;
+    speechDuration = 0;
+    maxF = 0;
+    meanF = 0;
+    timeStartSpeech = 0;
+    timeStopSpeech = 0;
+    stdSpeechLength = 0;
+    speechOccuranceTotal = 0;
+    percentPausePresent = 0;
+    percentSpeechPresent = 0;
+    percentFreqLT500 = 0;
+    percentFreqMT500 = 0;
+    stdMaxF = 0;
+    stdMeanF = 0;
+    detectFreqFilt = 0;
+    energyMatrix = 0;
+    
+    
+    
     
 else
     %% Speech Analysis: Speech Lag
@@ -61,7 +81,7 @@ else
     end
     
     for k = 1:length(timeStartPause)
-        speechPauseDuration(k) = timeStopPause(k) - timeStartPause(k); % Determing speech pause durations.
+        speechPauseDuration(k) = timeStopPause(k) - timeStartPause(k); % Determining speech pause durations.
         speechPauseNumber(k) = k; % Assigning each speech pause to its respective sequential occurrence.
         k = k + 1;
     end
@@ -76,7 +96,6 @@ else
     % Frequency analysis for speech present audio.
     detectFreqFilt = zeros(length(detectionWTime(1,:)),1);
     %fig = figure
-    title('pwelch')
     for z = 1:length(indSpeechStart)
         epoch = waveformWithTime(1,indSpeechStart(z):indSpeechStop(z)); % Extracting "zth" speech epoch.
         freq = meanfreq(epoch,Fs); % Taking meanfreq of speech epoch.
@@ -94,8 +113,8 @@ else
         energyMatrix(:,z) = avgEnergyForBand;
         meanF(z) = freq; % Extracting frequency relating to the average found in each speech epoch.
         maxF(z) = f(I); % Extracting frequency relating to highest power density.
-        percent500More(z) = 1; % PLACE HOLDERS FOR FREQUENCY BAND TESTING
-        percent500Less(z) = 1; % PLACE HOLDERS FOR FREQUENCY BAND TESTING
+        indLess500 = find(maxF < 500); % Extracting indices where array maxF is below 500 Hz.
+        indGreat500 = find(maxF >= 500); % Extracting indeices where array maxF is above or equal to 500 Hz.
         %loglog(f,pxx)
         %hold on
         %{
@@ -115,8 +134,8 @@ else
     speechOccuranceTotal = length(speechNumber);
     percentSpeechPresent = (sum(speechDuration)/ (sum(speechPauseDuration) + sum(speechDuration)))*100;
     percentPausePresent = 100 - percentSpeechPresent;
-    percentFreqLT500 = 1; % PLACE HOLDERS FOR FREQUENCY BAND TESTING
-    percentFreqMT500 = 1; % PLACE HOLDERS FOR FREQUENCY BAND TESTING
+    percentFreqLT500 = (length(indLess500) / (length(indLess500) + length(indGreat500))) * 100;
+    percentFreqMT500 = 100 - percentFreqLT500;
     stdMaxF = std(maxF);
     stdMeanF = std(meanF);
 end
@@ -128,8 +147,7 @@ analysisTablePauseDetails = table(speechPauseNumber',timeStartPause',...
     timeStopPause',speechPauseDuration');
 % Table 2 of 3: Detailed information on speech epoch analysis.
 analysisTableSpeechDetails = table(speechNumber',timeStartSpeech',...
-    timeStopSpeech',speechDuration', maxF', meanF',percent500Less', ...
-    percent500More');
+    timeStopSpeech',speechDuration', maxF', meanF');
 % Table 3 of 3: Summary of speech pause an epoch analysis and more.
 analysisTableSummary = table(initialSpeechLag, finalSpeechLag, ...
     averageSpeechPauseLength, stdSpeechPauseLength, speechPauseOccuranceTotal, ...
@@ -142,8 +160,7 @@ analysisTablePauseDetails.Properties.VariableNames = {'SP_Number' 'SP_Start_Time
 % Table 2 of 3: Table headers.
 analysisTableSpeechDetails.Properties.VariableNames = {'Speech_Epoch_Number'...
     'Speech_Start_Time' 'Speech_End_Time' 'Speech_Epoch_Duration'...
-    'Speech_Epoch_Max_Frequency' 'Speech_Epoch_Mean_Frequency'...
-    'Speech_Epoch_Freq_Percent_Below_500Hz' 'Speech_Epoch_Freq_Percent_Above_500Hz'};
+    'Speech_Epoch_Max_Frequency' 'Speech_Epoch_Mean_Frequency'};
 % Table 3 of 3: Table headers.
 analysisTableSummary.Properties.VariableNames = {'Initial_Speech_Lag' ...
     'Final_Speech_Lag' 'Average_SP_Length' 'Standard_Deviation_of_SP_Length'...

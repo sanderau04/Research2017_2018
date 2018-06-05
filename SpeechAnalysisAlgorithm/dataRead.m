@@ -55,12 +55,39 @@ if(choice ==2)
     myRecording = liveRecording(recObj);
 end
 
-dt = 1/Fs;
+
+if(choice == 3)
+        
+    if (check == 0)
+        [filename, pathname, ~] = uigetfile({'*.wav; *.ogg; *.flac; *.au; *.aiff; *.aif; *.aifc; *.mp3; *.m4a; *.mp4', 'All Audio Files';...
+            '*.*', 'All Files'}, 'Pick an Audio File', 'MultiSelect', 'on'); % Select all files readable by the function audioread, allow for multiple selections.
+        check = 1;
+    end
+    if(iscell(filename) == 1) % Condition is true if multiple files are imported.
+        audioFile = char(strcat(pathname,filename(x)));
+        audioName = char(filename(x)); % Extract the name of the file, without extension, to be used in saving feature.
+    else % Condition is true if a single file is imported.
+        audioFile = strcat(pathname,filename);
+        audioName = filename;
+    end
+    [noiseThresholdWavPos, noiseThresholdWavNeg] = findThresholdAuto(audioFile);
+    %pxxFreq = findFrequencyImport(audioFile);
+    [myRecording, Fs] = audioread(audioFile); % Extract waveform data from imported file(s)
+    if(length(myRecording(1,:)) ~= 1) % Condition is true when file is a recording in stereo.
+        myRecording = sum(myRecording, 2) / size(myRecording,2); % Converts stereo recording to mono.
+    end
+    
+    idx = find(ismember(audioName,'./\:'),1,'last');
+    if audioName(idx) == '.'; audioName(idx:end) = []; end % Extracts file name without the extension
+    
+end
+
+    dt = 1/Fs;
     t = 0:dt:length(myRecording)*dt - dt; %array of each sample in time domain
     waveformWithTime = zeros(2,(length(myRecording)+2));
     waveformWithTime(1,(2:end - 1)) = myRecording;
     waveformWithTime(2,(2:end - 1)) = t;
     waveformWithTime(2,end) = t(end);
-
+    
 end
 
