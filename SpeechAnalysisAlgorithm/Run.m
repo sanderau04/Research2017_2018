@@ -1,6 +1,7 @@
 clc, clear;
 global filename pathname noiseThresholdWavPos noiseThresholdWavNeg check check2;
 patientDxAndSpeechCode = xlsread('mcginnisdissertation8.2.16.xlsx');
+
 x = 1;
 filename = {1, 1, 1};
 pathname = {};
@@ -19,12 +20,31 @@ choice3 = input(startPrompt3);
 
 while (x ~= (length(filename) + 1) && (iscell(filename) == 1)) % To be implemented for multi file select.
     clear waveformWithTime;
+    clear audioName;
+    clear patientDx;
+    clear analysisTableSummary;
+    clear analysisTablePauseDetails;
+    clear analysisTableSpeechDetails;
+    clear energyMatrix;
+    clear indPdx
     [Fs, audioName, waveformWithTime, myRecording] = dataRead(choice, x);
+    indPdx = find(patientDxAndSpeechCode(:,1) == str2num(audioName));
+    if(isempty(indPdx) == 1)
+        patientDx = NaN(1,359);
+    else
+        patientDx = patientDxAndSpeechCode(indPdx,:);
+    end
+    
+ %{
     for i = 1:length(patientDxAndSpeechCode(:,1))
-        if(str2double(audioName) == patientDxAndSpeechCode(i,1))
+        if(str2num(audioName) == patientDxAndSpeechCode(i,1))
             patientDx = patientDxAndSpeechCode(i,:);
+        else
+            patientDx = NaN(1,359);
         end
     end
+    i=1;
+    %}
     % Return raw speech detection and refined speech detection with
     % respective sample time.
     [detectionWTime] = speechDetection(myRecording,...
@@ -51,7 +71,7 @@ while (x ~= (length(filename) + 1) && (iscell(filename) == 1)) % To be implement
     % Create timestamped mat file of full speech analysis.
     if(choice3 == 1)
         AnalysisResults = ['SpeechTaskResults/Patient_', audioName,'__',datestr(now, 'dd-mmm-yyyy_HH_MM_SS_'),'.mat'];
-        save (AnalysisResults, 'analysisTableSummary', 'analysisTablePauseDetails', 'analysisTableSpeechDetails', 'energyMatrix', 'patientDx', 'filename');
+        save (AnalysisResults, 'analysisTableSummary', 'analysisTablePauseDetails', 'analysisTableSpeechDetails', 'energyMatrix', 'patientDx', 'filename', 'audioName');
     end
     x = x + 1;
 end
