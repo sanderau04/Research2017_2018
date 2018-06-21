@@ -1,7 +1,6 @@
-function [detectionWTime, detectionRaw] = speechDetection(myRecording,...% Raw waveform data from live recording
-    noiseThresholdWavPos,... % Upper waveform magnitude threshold.
-    noiseThresholdWavNeg,... % Lower waveform magnitude threshold.
-    Fs)
+function [detectionWTime, detectionRaw,dBaudio] = speechDetection(dBaudio,...% Raw waveform data from live recording % Lower waveform magnitude threshold.
+    Fs,...
+    noiseThresholdDb)
 % speechDetection function determines where speech is present in the
 % entire audio file using the waveform magnitude noise thresholds.
 
@@ -9,10 +8,12 @@ function [detectionWTime, detectionRaw] = speechDetection(myRecording,...% Raw w
 % Peforming envelopes and timestamps to create optimal speech detection.
 
 % Assigning two arrays for upper and lower envelope of myRecording data.
-[yUpper, yLower] = envelope(myRecording, 800, 'peak');
+indNegInf = find(isinf(dBaudio) == 1);
+dBaudio(indNegInf) = -100;
+[yUpper, yLower] = envelope(dBaudio, 800, 'peak');
 
 % Assigning timestamps to each sample taken in myRecording.
-for x = 1:length(myRecording)
+for x = 1:length(dBaudio)
     time(x) = x/Fs; % Save timestamps to array 'time'.
     x = x+1;
 end
@@ -22,13 +23,12 @@ end
 % detection array.
 
 % Assigning array detectionRaw to speech detection.
-for s = 1:length(yLower)
-    if ((yUpper(s) > noiseThresholdWavPos) || (yLower(s) < noiseThresholdWavNeg))
+for s = 1:length(yUpper)
+    if ((yUpper(s) > noiseThresholdDb)||(yLower(s) > noiseThresholdDb))
         detectionRaw(s) = 1; % If speech is detected assign value of 1 to specific sample index.
     else
         detectionRaw(s) = 0; % If speech is not detected assign value of 0 to specific sample index.
     end
-    s = s + 1;
 end
 
 % Filter speech detection  to get rid of false detection using median

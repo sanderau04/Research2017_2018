@@ -1,11 +1,11 @@
-function [Fs, audioName, waveformWithTime, myRecording] = dataRead(choice, x)
+function [Fs, audioName,waveformWithTime,waveform, audioWExt] = dataRead(choice, x)
 % dataRead function performs the intial audio processing for a live or
 % imported file. Calls upon noise threshold functions within itself.
 %   choice == 1 corresponds with imported file(s).
 %   choice == 2 corresponds with a live recording.
 %   The global files below are respresented in Run.m and are
 %   crucial for looping features and general speech detection analysis.
-global filename pathname noiseThresholdWavPos noiseThresholdWavNeg check check2;
+global filename pathname noiseThresholdDb check check2 dBaudio;
 
 %% Extracting Imported File(s)
 % Determine file name(s) to be used in saving feature, run findThresholdImport
@@ -22,20 +22,23 @@ if(choice == 1)
     if(iscell(filename) == 1) % Condition is true if multiple files are imported.
         audioFile = char(strcat(pathname,filename(x)));
         audioName = char(filename(x)); % Extract the name of the file, without extension, to be used in saving feature.
+        audioWExt = audioName;
     else % Condition is true if a single file is imported.
         audioFile = strcat(pathname,filename);
         audioName = filename;
+        audioWExt = audioName;
     end
     if (check2 == 0) % Condition allows findThresholdImport to run only once
         [noiseThresholdWavPos, noiseThresholdWavNeg] = findThresholdImport(audioFile);
         %pxxFreq = findFrequencyImport(audioFile);
         check2 = 1;
     end
+    %{
     [myRecording, Fs] = audioread(audioFile); % Extract waveform data from imported file(s)
     if(length(myRecording(1,:)) ~= 1) % Condition is true when file is a recording in stereo.
         myRecording = sum(myRecording, 2) / size(myRecording,2); % Converts stereo recording to mono.
     end
-    
+    %}
     idx = find(ismember(audioName,'./\:'),1,'last');
     if audioName(idx) == '.'; audioName(idx:end) = []; end % Extracts file name without the extension
     
@@ -66,26 +69,29 @@ if(choice == 3)
     if(iscell(filename) == 1) % Condition is true if multiple files are imported.
         audioFile = char(strcat(pathname,filename(x)));
         audioName = char(filename(x)); % Extract the name of the file, without extension, to be used in saving feature.
+        audioWExt = audioName;
     else % Condition is true if a single file is imported.
         audioFile = strcat(pathname,filename);
         audioName = filename;
+        audioWExt = audioName;
     end
-    [noiseThresholdWavPos, noiseThresholdWavNeg] = findThresholdAuto(audioFile);
+    [dBaudio,noiseThresholdDb,waveform,Fs] = findThresholdAuto(audioFile);
     %pxxFreq = findFrequencyImport(audioFile);
+    %{
     [myRecording, Fs] = audioread(audioFile); % Extract waveform data from imported file(s)
     if(length(myRecording(1,:)) ~= 1) % Condition is true when file is a recording in stereo.
         myRecording = sum(myRecording, 2) / size(myRecording,2); % Converts stereo recording to mono.
     end
-    
+    %}
     idx = find(ismember(audioName,'./\:'),1,'last');
     if audioName(idx) == '.'; audioName(idx:end) = []; end % Extracts file name without the extension
     
 end
-
+    
     dt = 1/Fs;
-    t = 0:dt:length(myRecording)*dt - dt; %array of each sample in time domain
-    waveformWithTime = zeros(2,(length(myRecording)+2));
-    waveformWithTime(1,(2:end - 1)) = myRecording;
+    t = 0:dt:length(waveform)*dt - dt; %array of each sample in time domain
+    waveformWithTime = zeros(2,(length(waveform)+2));
+    waveformWithTime(1,(2:end - 1)) = waveform;
     waveformWithTime(2,(2:end - 1)) = t;
     waveformWithTime(2,end) = t(end);
     

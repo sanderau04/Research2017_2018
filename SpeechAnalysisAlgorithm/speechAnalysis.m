@@ -6,6 +6,8 @@ function [analysisTablePauseDetails, analysisTableSpeechDetails, analysisTableSu
 % analysis on the entire audio recording file. Returns three tables
 % enclosing all speech analysis data outcomes.
 
+global indSpeechStart indSpeechStop
+
 recordStart = detectionWTime(1,1); % Assigning start time of recording to variable recordStart
 recordEnd = detectionWTime(1,length(detectionWTime(1,:))); % Assigning stop time of recording to variable recordEnd
 
@@ -22,7 +24,7 @@ timeStopSpeech = detectionWTime(1,indSpeechStop); % Assign array of all speech s
 %% Speech Analysis: Debug
 % Debugging for constant speech presence or constant speech non present.
 
-if((length(timeStartSpeech)) == 0 || (isempty(timeStopSpeech) == 1))
+if((length(timeStartSpeech)) == 0 || (isempty(timeStopSpeech) == 1) || (length(indSpeechStop) <= 1) )
     initialSpeechLag = 0;
     finalSpeechLag = 0;
     timeStopPause = 0;
@@ -77,20 +79,17 @@ else
         if(x ~= length(timeStopSpeech))
             timeStartPause(x) = timeStopSpeech(x); % Assigning all audio speech pause initiations to array timeStartPause.
         end
-        x = x + 1;
     end
     
     for k = 1:length(timeStartPause)
         speechPauseDuration(k) = timeStopPause(k) - timeStartPause(k); % Determining speech pause durations.
         speechPauseNumber(k) = k; % Assigning each speech pause to its respective sequential occurrence.
-        k = k + 1;
     end
     %% Speech Analysis: Speech Epoch
     % Determing speech epoch duration and occurence number.
     for w = 1:length(timeStartSpeech)
         speechDuration(w) = timeStopSpeech(w) - timeStartSpeech(w); % Determining speech epoch durations.
         speechNumber(w)= w; % Assigning each speech epoch to its respective sequential occurrence.
-        w = w + 1;
     end
     %% Speech Analysis: Frequency
     % Frequency analysis for speech present audio.
