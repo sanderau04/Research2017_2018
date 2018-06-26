@@ -36,7 +36,7 @@ while (x ~= (length(filename) + 1) && (iscell(filename) == 1)) % To be implement
         patientDx = patientDxAndSpeechCode(indPdx,:);
     end
     
- 
+    %{
     for i = 1:length(patientDxAndSpeechCode(:,1))
         if(str2num(audioName) == patientDxAndSpeechCode(i,1))
             patientDx = patientDxAndSpeechCode(i,:);
@@ -45,6 +45,7 @@ while (x ~= (length(filename) + 1) && (iscell(filename) == 1)) % To be implement
         end
     end
     i=1;
+    %}
     %}
     % Return raw speech detection and refined speech detection with
     % respective sample time.

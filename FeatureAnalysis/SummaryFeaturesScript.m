@@ -68,7 +68,7 @@ Features = [extrPDx summaryFeatures];
 %PIDDebug = Features(indNegative,1);
 
 %% NaN PID files debug
-%{
+
 for z = 1:length(Features(:,1))
     if(isnan(Features(z,1)) == 1)
         audioName{z}
@@ -174,7 +174,6 @@ ylabel('Percent')
 %}
 
 if choice == 1
-   
     XlFeatures = [Variables; Features];
     excelFile = ['exportedSpreadSheets/export_',datestr(now, 'dd-mmm-yyyy_HH_MM_SS_'),'.xlsx'];
     xlswrite(excelFile,XlFeatures)
