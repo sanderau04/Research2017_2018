@@ -23,22 +23,32 @@ end
 for i = 1:length(matFiles)
     pDx = extractfield(matData(i),'patientDx');
     
-    switch pDx(73)
-        case 0
+    switch pDx(80)
+        case 1
             matData0(x) = matData(i);
             x = x + 1;
-        case 1
+        case 2
             matData1(y) = matData(i);
             y = y + 1;
     end
 end
 
+for q=1:length(matData0)
+    gender1(q) = matData0(q).patientDx(1);
+end
+
+for q=1:length(matData1)
+    gender2(q) = matData1(q).patientDx(1);
+end
+
 for i = 1:length(matData0)
     feat = extractfield(matData0(i),'analysisTableSummary');
+    audioName1(i,1) = str2num(matData0(i).audioName);
     avgSPDomFreq(i) = mean(matData0(i).analysisTableSpeechDetails.Speech_Epoch_Max_Frequency);
     stdSPDomFreq(i) = std(matData0(i).analysisTableSpeechDetails.Speech_Epoch_Max_Frequency);
     avgSPMeanFreq(i) = mean(matData0(i).analysisTableSpeechDetails.Speech_Epoch_Mean_Frequency);
     stdSPMeanFreq(i) = std(matData0(i).analysisTableSpeechDetails.Speech_Epoch_Mean_Frequency);
+    childage1(i) = matData0(i).patientDx(29);
     summaryFeatures(i,1) = feat{1,1}.Initial_Speech_Lag;
     summaryFeatures(i,2) = feat{1,1}.Final_Speech_Lag;
     summaryFeatures(i,3) = feat{1,1}.Average_SP_Length;
@@ -58,10 +68,12 @@ end
 
 for x=1:length(matData1)
     feat1 = extractfield(matData1(x),'analysisTableSummary');
+    audioName2(x,1) = str2num(matData1(x).audioName);
     avgSPDomFreq1(x) = mean(matData1(x).analysisTableSpeechDetails.Speech_Epoch_Max_Frequency);
     stdSPDomFreq1(x) = std(matData1(x).analysisTableSpeechDetails.Speech_Epoch_Max_Frequency);
     avgSPMeanFreq1(x) = mean(matData1(x).analysisTableSpeechDetails.Speech_Epoch_Mean_Frequency);
     stdSPMeanFreq1(x) = std(matData1(x).analysisTableSpeechDetails.Speech_Epoch_Mean_Frequency);
+    childage2(x) = matData1(x).patientDx(29);
     summaryFeatures1(x,1) = feat1{1,1}.Initial_Speech_Lag;
     summaryFeatures1(x,2) = feat1{1,1}.Final_Speech_Lag;
     summaryFeatures1(x,3) = feat1{1,1}.Average_SP_Length;
@@ -93,7 +105,7 @@ RowNames = {'Avg_Dominant_Freq', 'Avg_Mean_Freq', 'Std_Dominant_Freq', 'Std_Mean
     'Standard_Deviation_of_SP_Length', 'SP_Total_Occurance', 'Average_Speech_Epoch_Length', 'Std_of_Speech_Epoch_Length', 'Speech_Epoch_Total_Occurance',...
     'Percent_Pause_Present', 'Percent_Speech_Present', 'Percent_Freq_Below_500Hz', 'Percent_Above_500Hz', 'Standard_Deviation_Max_Frequency',...
     'Standard_Deviation_Mean_Frequency'};
-Variables = {'P_Value', 'h_1_Null_Hypothesis_Rejected'};
+Variables = {'P_Value', 'h_1_Null_Hypothesis_Rejected'}
 
 intDxRankSumTable = table(p',h','VariableNames', Variables, 'RowNames', RowNames);
 

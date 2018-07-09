@@ -23,15 +23,18 @@ end
 for i = 1:length(matFiles)
     pDx = extractfield(matData(i),'patientDx');
     
-    switch pDx(73)
-        case 0
+    switch pDx(80)
+        case 1
             matData0(x) = matData(i);
             x = x + 1;
-        case 1
+        case 2
             matData1(y) = matData(i);
             y = y + 1;
     end
+
 end
+
+for 
 
 for i = 1:length(matData0)
     feat = extractfield(matData0(i),'analysisTableSummary');
@@ -93,7 +96,7 @@ RowNames = {'Avg_Dominant_Freq', 'Avg_Mean_Freq', 'Std_Dominant_Freq', 'Std_Mean
     'Standard_Deviation_of_SP_Length', 'SP_Total_Occurance', 'Average_Speech_Epoch_Length', 'Std_of_Speech_Epoch_Length', 'Speech_Epoch_Total_Occurance',...
     'Percent_Pause_Present', 'Percent_Speech_Present', 'Percent_Freq_Below_500Hz', 'Percent_Above_500Hz', 'Standard_Deviation_Max_Frequency',...
     'Standard_Deviation_Mean_Frequency'};
-Variables = {'P_Value', 'h_1_Null_Hypothesis_Rejected'};
+Variables = {'P_Value', 'h_1_Null_Hypothesis_Rejected'}
 
 intDxRankSumTable = table(p',h','VariableNames', Variables, 'RowNames', RowNames);
 

@@ -1,6 +1,6 @@
 clear all
 x=1;
-patientDxAndSpeechCode = xlsread('mcginnisdissertation8.2.16.xlsx');
+patientDxAndSpeechCode = xlsread('mcginnisdissertation8.2.16.UPDATED.VALUES.xlsx');
 %%
 [matFilename, pathname, ~] = uigetfile('*.mat', 'Pick mat File', 'MultiSelect', 'on'); % Select all files readable by the function audioread, allow for multiple selections.
 while (x ~= (length(matFilename) + 1))

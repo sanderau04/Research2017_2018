@@ -1,4 +1,4 @@
-function [VisualAnalysis] = makePlot(detectionWTime,dBaudio,audioName,noiseThresholdDb)
+function [VisualAnalysis] = makePlot(detectionWTime,dBaudio,audioName,noiseThresholdDb,waveform)
 % makePlot function produces a figure that shows the entire waveform of the
 % audio recording as well as the speech detection and noise thresholds.
 
@@ -8,17 +8,19 @@ function [VisualAnalysis] = makePlot(detectionWTime,dBaudio,audioName,noiseThres
 
 VisualAnalysis = figure('Name', 'Speech Detection', 'NumberTitle', 'off');
 visualDetection = detectionWTime(2,:);
-indVisDetection = find(visualDetection == 0);
-visualDetection(indVisDetection) = -40;
+%indVisDetection = find(visualDetection == 0);
+%visualDetection(indVisDetection) = -40;
 %subplot(1,2,1)
-envelope(dBaudio, 800, 'peak');
+plot(detectionWTime(1,2:end-1),waveform,detectionWTime(1,:),visualDetection)
+[yup, ylow] = envelope(waveform, 800, 'peak');
 hold on
-plot(visualDetection);
-ylim([-60,5]);
-hlinePos = refline([0 noiseThresholdDb]);
-hlinePos.Color = 'g';
-title(audioName)
-legend('signal','envelope','speech detection filtered', 'Location','southwest')
+plot(detectionWTime(1,2:end-1),yup,'b',detectionWTime(1,2:end-1),ylow,'b')
+ylim([-1.2,1.2]);
+%hlinePos = refline([0 noiseThresholdDb]);
+%hlinePos.Color = 'g';
+name = [num2str(audioName), " intDx1, Gender1"]
+title(name)
+%legend('signal','envelope','speech detection filtered','detection', 'Location','southwest')
 %{
 subplot(1,2,2)
 envelope(myRecording, 800, 'peak');

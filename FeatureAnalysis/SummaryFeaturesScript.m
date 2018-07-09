@@ -8,18 +8,18 @@ choice = input(startPrompt);
 myFolder = uigetdir('D:\Documents\Research2017\MATLAB','Pick a folder containing mat files');
 
 if ~isdir(myFolder)
-  errorMessage = sprintf('Error: The following folder does not exist:\n%s', myFolder);
-  uiwait(warndlg(errorMessage));
-  return;
+    errorMessage = sprintf('Error: The following folder does not exist:\n%s', myFolder);
+    uiwait(warndlg(errorMessage));
+    return;
 end
 
 filePattern = fullfile(myFolder, '*.mat');
 matFiles = dir(filePattern);
 
 for k = 1:length(matFiles)
-  baseFileName = matFiles(k).name;
-  fullFileName = fullfile(myFolder, baseFileName);
-  matData(k) = load(fullFileName);
+    baseFileName = matFiles(k).name;
+    fullFileName = fullfile(myFolder, baseFileName);
+    matData(k) = load(fullFileName);
 end
 
 %% Feature Analysis
@@ -29,8 +29,14 @@ end
 
 for i = 1:length(matFiles)
     pDx(i,:) = extractfield(matData(i),'patientDx');
-	feat(i,:) = extractfield(matData(i),'analysisTableSummary');
+    feat(i,:) = extractfield(matData(i),'analysisTableSummary');
     audioName(i) = extractfield(matData(i),'audioName');
+    avgSPDomFreq(i) = mean(matData(i).analysisTableSpeechDetails.Speech_Epoch_Max_Frequency);
+    avgSPMeanFreq(i) = mean(matData(i).analysisTableSpeechDetails.Speech_Epoch_Mean_Frequency);
+    maxSPDomFreq(i) = max(matData(i).analysisTableSpeechDetails.Speech_Epoch_Max_Frequency);
+    maxSPMeanFreq(i) = max(matData(i).analysisTableSpeechDetails.Speech_Epoch_Mean_Frequency);
+    
+    
     summaryFeatures(i,1) = feat{i,1}.Initial_Speech_Lag;
     summaryFeatures(i,2) = feat{i,1}.Final_Speech_Lag;
     summaryFeatures(i,3) = feat{i,1}.Average_SP_Length;
@@ -43,8 +49,13 @@ for i = 1:length(matFiles)
     summaryFeatures(i,10) = feat{i,1}.Percent_Speech_Present;
     summaryFeatures(i,11) = feat{i,1}.Percent_Freq_Below_500Hz;
     summaryFeatures(i,12) = feat{i,1}.Percent_Above_500Hz;
-    summaryFeatures(i,13) = feat{i,1}.Standard_Deviation_Max_Frequency;
-    summaryFeatures(i,14) = feat{i,1}.Standard_Deviation_Mean_Frequency;
+    summaryFeatures(i,13) = avgSPDomFreq(i);
+    summaryFeatures(i,14) = avgSPMeanFreq(i);
+    summaryFeatures(i,15) = maxSPDomFreq(i);
+    summaryFeatures(i,16) = maxSPMeanFreq(i);
+    summaryFeatures(i,17) = feat{i,1}.Standard_Deviation_Max_Frequency;
+    summaryFeatures(i,18) = feat{i,1}.Standard_Deviation_Mean_Frequency;
+    
     %summaryFeatures(i,15) = audioName{i};
     
     extrPDx(i,1) = pDx(i,1); %PID
@@ -84,14 +95,17 @@ ind1 = find(Features(:,8) == 1);
 
 FeatIntDx0 = Features(ind0,:);
 FeatIntDx1 = Features(ind1,:);
-x = 1;
 
+
+
+
+x = 1;
 for j = 12:25
     avgArray0(x) = mean(FeatIntDx0(:,j));
     avgArray1(x) = mean(FeatIntDx1(:,j));
     x = x + 1;
 end
-Variables = ["PID", "childage", "NSp2PB", "sp2fsumw", "internalTmerged", "PTSDSX", "ExternalTmerged", "INTdx", "ChildGender", "SP2FVsum", "NSp2pV", "Initial Speech Lag", "Final Speech Lag", "Average SP Length", "Standard Deviation of SP Length", "SP Total Occurance", "Average Speech Epoch Length", "Standard Deviation of Speech Epoch Length", "Speech Epoch Total Occurance", "Percent Pause Present", "Percent Speech Present", "Percent Freq Below 500Hz", "Percent Above 500Hz", "Standard Deviation Max Frequency", "Standard Deviation Mean Frequency"];
+Variables = ["PID", "childage", "NSp2PB", "sp2fsumw", "internalTmerged", "PTSDSX", "ExternalTmerged", "INTdx", "ChildGender", "SP2FVsum", "NSp2pV", "Initial Speech Lag", "Final Speech Lag", "Average SP Length", "Standard Deviation of SP Length", "SP Total Occurance", "Average Speech Epoch Length", "Standard Deviation of Speech Epoch Length", "Speech Epoch Total Occurance", "Percent Pause Present", "Percent Speech Present", "Percent Freq Below 500Hz", "Percent Above 500Hz","Avg Epoch Dominant Frequency","Avg Epoch Mean Frequency","Max Epoch Dominant Frequency","Max Epoch Mean Frequency", "Standard Deviation Dominant Frequency", "Standard Deviation Mean Frequency"];
 indFeatSec = [12:15 17 18];
 indFeatPerc = [20:23];
 
@@ -102,6 +116,15 @@ PercFeatIntDx0 = FeatIntDx0(:,indFeatPerc);
 SecFeatIntDx1 = FeatIntDx1(:,indFeatSec);
 PercFeatIntDx1 = FeatIntDx1(:,indFeatPerc);
 
+%normalizing all values within their column
+for q=1:length(SecFeatIntDx0(1,:))
+    SecFeatIntDx0(:,q) = zscore(SecFeatIntDx0(:,q));
+end
+
+for q=1:length(SecFeatIntDx1(1,:))
+    SecFeatIntDx1(:,q) = zscore(SecFeatIntDx1(:,q));
+end
+
 %SecFeatIntDx0(:,1) = SecFeatIntDx0(:,1) - 10;
 %SecFeatIntDx1(:,1) = SecFeatIntDx1(:,1) - 10;
 
@@ -109,7 +132,6 @@ featTitleSec = Variables(indFeatSec);
 featTitlePerc = Variables(indFeatPerc);
 f = 1;
 for q = 1:6
-    
     BigAssArray(:,q) = [SecFeatIntDx0(:,q); SecFeatIntDx1(:,q)];
     g(:,q) = [(f)*ones(size(SecFeatIntDx0(:,q))); (f+1)*ones(size(SecFeatIntDx1(:,q)))];
     f = f + 2;
@@ -134,12 +156,15 @@ gg2 = [g2(:,1);g2(:,2);g2(:,3);g2(:,4)];
 figure
 boxplot(x,gg,'Labels',{'IntDx0: Init Speech Lag', 'IntDx1: Init Speech Lag', 'IntDx0: Fin Speech Lag', 'IntDx1: Fin Speech Lag', 'IntDx0: Avg SP Length', 'IntDx1: Avg SP Length', 'IntDx0: Std SP Length', 'IntDx1: Std SP Length', 'IntDx0: Avg Epoch Length', 'IntDx1: Avg Epoch Length', 'IntDx0: Std Epoch Length', 'IntDx1: Std Epoch Length'})
 set(gca,'FontSize',10,'XTickLabelRotation',45)
-ylabel('seconds')
+ylabel('Zscore')
+title('NO Epoch Filtering: IntDx Feature Boxplots')
 
 figure
 boxplot(x2,gg2,'Labels',{'IntDx0: % Pause Present', 'IntDx1: % Pause Present', 'IntDx0: % Speech Present', 'IntDx1: % Speech Present', 'IntDx0: % Freq Below 500Hz', 'IntDx1: % Freq Below 500Hz', 'IntDx0: % Above 500Hz', 'IntDx1: % Above 500Hz'})
 set(gca,'FontSize',10,'XTickLabelRotation',45)
 ylabel('percent')
+title('NO Epoch Filtering: IntDx Feature Boxplots')
+
 
 %SecFeatIntDx
 %SecFeatIntDx0_1 = NaN(48,12);
@@ -163,7 +188,7 @@ figure
 boxplot(SecFeatIntDx1,featTitleSec)
 title('INTDx = 1')
 ylabel('Seconds')
-figure 
+figure
 boxplot(PercFeatIntDx0,featTitlePerc)
 title('IntDx = 0')
 ylabel('Percent')
@@ -182,5 +207,5 @@ end
 %% Plot time
 
 
-    
+
 

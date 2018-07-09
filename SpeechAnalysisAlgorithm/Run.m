@@ -65,7 +65,7 @@ while (x ~= (length(filename) + 1) && (iscell(filename) == 1)) % To be implement
     % Call function makePlot to create graphical representations of the
     % analysis performed.
     if(choice2 == 2)
-        [VisualAnalysis] = makePlot(detectionWTime,dBaudio,audioName,noiseThresholdDb);
+        [VisualAnalysis] = makePlot(detectionWTime,dBaudio,audioName,noiseThresholdDb,waveform);
     end
 indDetect = find(detectionWTime(2,:) == 1);
 %detectWaveform = waveform(indDetect);
