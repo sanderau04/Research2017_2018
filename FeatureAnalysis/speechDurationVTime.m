@@ -22,16 +22,17 @@ end
 
 for i = 1:length(matFiles)
     pDx = extractfield(matData(i),'patientDx');
-    
-    switch pDx(73)
-        case 0
-            matData0(x) = matData(i);
-            age0(x) = matData0(x).patientDx(29);
-            x = x + 1;
-        case 1
-            matData1(y) = matData(i);
-            age1(y) = matData1(y).patientDx(29);
-            y = y + 1;
+    if width(matData(i).analysisTableSummaryPatient) == 14
+        switch pDx(73)
+            case 0
+                matData0(x) = matData(i);
+                age0(x) = matData0(x).patientDx(29);
+                x = x + 1;
+            case 1
+                matData1(y) = matData(i);
+                age1(y) = matData1(y).patientDx(29);
+                y = y + 1;
+        end
     end
 end
 
@@ -66,30 +67,30 @@ figfig(1) = figure('pos', [10 10 1920 1080]);
 
 for i = 1:length(matDatay0)
     audioName1(i,1) = str2num(matData0(i).audioName);
-    freqYoung1{:,i} = matDatay0(i).analysisTableSpeechDetails.Speech_Epoch_Duration;
-    freqTimey1{:,i} = matDatay0(i).analysisTableSpeechDetails.Speech_Start_Time;
+    freqYoung1{:,i} = matDatay0(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Duration;
+    freqTimey1{:,i} = matDatay0(i).analysisTableSpeechDetailsPatient.Speech_Start_Time;
     h(1) = plot(freqTimey1{1,i},freqYoung1{1,i},'b*');
     hold on
 end
 
 for i=1:length(matDataO0)
-     freqOld1{:,i} = matDataO0(i).analysisTableSpeechDetails.Speech_Epoch_Duration;
-     freqTimeO1{:,i} = matDataO0(i).analysisTableSpeechDetails.Speech_Start_Time;
+     freqOld1{:,i} = matDataO0(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Duration;
+     freqTimeO1{:,i} = matDataO0(i).analysisTableSpeechDetailsPatient.Speech_Start_Time;
      h(2) = plot(freqTimeO1{1,i}, freqOld1{1,i},'r*');
      hold on
 end
 
 
 for i = 1:length(matDatay1)
-    freqYoung2{:,i} = matDatay1(i).analysisTableSpeechDetails.Speech_Epoch_Duration;
-    freqTimey2{:,i} = matDatay1(i).analysisTableSpeechDetails.Speech_Start_Time;
+    freqYoung2{:,i} = matDatay1(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Duration;
+    freqTimey2{:,i} = matDatay1(i).analysisTableSpeechDetailsPatient.Speech_Start_Time;
     h(3) = plot(freqTimey2{1,i}, freqYoung2{1,i},'g*');
     hold on
 end
 %}
 for i = 1:length(matDataO1)
-    freqOld2{:,i} = matDataO1(i).analysisTableSpeechDetails.Speech_Epoch_Duration;
-    freqTimeO2{:,i} = matDataO1(i).analysisTableSpeechDetails.Speech_Start_Time;
+    freqOld2{:,i} = matDataO1(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Duration;
+    freqTimeO2{:,i} = matDataO1(i).analysisTableSpeechDetailsPatient.Speech_Start_Time;
     h(4) = plot(freqTimeO2{1,i}, freqOld2{1,i},'m*');
     hold on 
 end

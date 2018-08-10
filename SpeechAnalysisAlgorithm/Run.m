@@ -28,13 +28,14 @@ while (x ~= (length(filename) + 1) && (iscell(filename) == 1)) % To be implement
     clear energyMatrix;
     clear indPdx;
     [Fs, audioName,waveformWithTime,waveform,audioWExt] = dataRead(choice, x);
-    
+    %{
     indPdx = find(patientDxAndSpeechCode(:,1) == str2num(audioName));
     if(isempty(indPdx) == 1)
         patientDx = NaN(1,359);
     else
         patientDx = patientDxAndSpeechCode(indPdx,:);
     end
+    %}
     
     %{
     for i = 1:length(patientDxAndSpeechCode(:,1))

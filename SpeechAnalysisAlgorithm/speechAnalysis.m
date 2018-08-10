@@ -114,8 +114,8 @@ else
         maxF(z) = f(I); % Extracting frequency relating to highest power density.
         indLess500 = find(maxF < 500); % Extracting indices where array maxF is below 500 Hz.
         indGreat500 = find(maxF >= 500); % Extracting indeices where array maxF is above or equal to 500 Hz.
-        %loglog(f,pxx)
-        %hold on
+        loglog(f,pxx)
+        hold on
         %{
         h = kstest2(pxxFreq,pxx,'Alpha',0.0001);
         if(h == 0 || h == 1)

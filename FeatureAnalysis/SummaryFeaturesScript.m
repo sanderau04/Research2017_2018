@@ -1,4 +1,5 @@
-clc, clear all, close all
+
+clc, clear all
 %% Initial Option
 
 startPrompt = 'Export Excel spreadsheet? [0] for NO, [1] for YES: ';
@@ -26,49 +27,84 @@ end
 % Extracting Summary values for each patient on concatenating patient Dx
 % and summary features into one matrix
 
-
+j=1;
+w=1;
 for i = 1:length(matFiles)
-    pDx(i,:) = extractfield(matData(i),'patientDx');
-    feat(i,:) = extractfield(matData(i),'analysisTableSummary');
-    audioName(i) = extractfield(matData(i),'audioName');
-    avgSPDomFreq(i) = mean(matData(i).analysisTableSpeechDetails.Speech_Epoch_Max_Frequency);
-    avgSPMeanFreq(i) = mean(matData(i).analysisTableSpeechDetails.Speech_Epoch_Mean_Frequency);
-    maxSPDomFreq(i) = max(matData(i).analysisTableSpeechDetails.Speech_Epoch_Max_Frequency);
-    maxSPMeanFreq(i) = max(matData(i).analysisTableSpeechDetails.Speech_Epoch_Mean_Frequency);
-    
-    
-    summaryFeatures(i,1) = feat{i,1}.Initial_Speech_Lag;
-    summaryFeatures(i,2) = feat{i,1}.Final_Speech_Lag;
-    summaryFeatures(i,3) = feat{i,1}.Average_SP_Length;
-    summaryFeatures(i,4) = feat{i,1}.Standard_Deviation_of_SP_Length;
-    summaryFeatures(i,5) = feat{i,1}.SP_Total_Occurance;
-    summaryFeatures(i,6) = feat{i,1}.Average_Speech_Epoch_Length;
-    summaryFeatures(i,7) = feat{i,1}.Standard_Deviation_of_Speech_Epoch_Length;
-    summaryFeatures(i,8) = feat{i,1}.Speech_Epoch_Total_Occurance;
-    summaryFeatures(i,9) = feat{i,1}.Percent_Pause_Present;
-    summaryFeatures(i,10) = feat{i,1}.Percent_Speech_Present;
-    summaryFeatures(i,11) = feat{i,1}.Percent_Freq_Below_500Hz;
-    summaryFeatures(i,12) = feat{i,1}.Percent_Above_500Hz;
-    summaryFeatures(i,13) = avgSPDomFreq(i);
-    summaryFeatures(i,14) = avgSPMeanFreq(i);
-    summaryFeatures(i,15) = maxSPDomFreq(i);
-    summaryFeatures(i,16) = maxSPMeanFreq(i);
-    summaryFeatures(i,17) = feat{i,1}.Standard_Deviation_Max_Frequency;
-    summaryFeatures(i,18) = feat{i,1}.Standard_Deviation_Mean_Frequency;
-    
-    %summaryFeatures(i,15) = audioName{i};
-    
-    extrPDx(i,1) = pDx(i,1); %PID
-    extrPDx(i,2) = pDx(i,29); %childage
-    extrPDx(i,3) = pDx(i,41); %NSp2PB
-    extrPDx(i,4) = pDx(i,42); %sp2fsumw
-    extrPDx(i,5) = pDx(i,46); %internalTmerged
-    extrPDx(i,6) = pDx(i,48); %PTSDSX
-    extrPDx(i,7) = pDx(i,70); %ExternalTmerged
-    extrPDx(i,8) = pDx(i,73); %INTdx
-    extrPDx(i,9) = pDx(i,80); %ChildGender
-    extrPDx(i,10) = pDx(i,126); %SP2FVsum
-    extrPDx(i,11) = pDx(i,225); %NSp2pV
+    if width(matData(i).analysisTableSummaryPatient) == 14
+        pDx(j,:) = extractfield(matData(i),'patientDx');
+        feat(j,:) = extractfield(matData(i),'analysisTableSummaryPatient');
+        audioName(j) = extractfield(matData(i),'audioName');
+        avgSPDomFreq(j) = mean(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Max_Frequency);
+        avgSPMeanFreq(j) = mean(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Mean_Frequency);
+        maxSPDomFreq(j) = max(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Max_Frequency);
+        maxSPMeanFreq(j) = max(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Mean_Frequency);
+        energyMatrix = matData(i).energyMatrixPatientOnly;
+        if length(energyMatrix) > 1
+            above200raw = energyMatrix(3:end,:);
+            above500raw = energyMatrix(6:end,:);
+            above700raw = energyMatrix(8:end,:);
+            above1000raw = energyMatrix(11:end,:);
+            above2000raw = energyMatrix(21:end,:);
+            
+            
+            above200col=  sum(above200raw);
+            above500col = sum(above500raw);
+            above700col = sum(above700raw);
+            above1000col = sum(above1000raw);
+            above2000col = sum(above2000raw);
+            
+            above200 = mean(above200col);
+            above500 = mean(above500col);
+            above700 = mean(above700col);
+            above1000 = mean(above1000col);
+            above2000 = mean(above2000col);
+        else
+            above200 = 0;
+            above500 = 0;
+            above700 = 0;
+            above1000 = 0;
+            above2000 = 0;
+        end
+        
+        summaryFeatures(j,1) = feat{j,1}.Initial_Speech_Lag;
+        summaryFeatures(j,2) = feat{j,1}.Final_Speech_Lag;
+        summaryFeatures(j,3) = feat{j,1}.Average_SP_Length;
+        summaryFeatures(j,4) = feat{j,1}.Standard_Deviation_of_SP_Length;
+        summaryFeatures(j,5) = feat{j,1}.SP_Total_Occurance;
+        summaryFeatures(j,6) = feat{j,1}.Average_Speech_Epoch_Length;
+        summaryFeatures(j,7) = feat{j,1}.Standard_Deviation_of_Speech_Epoch_Length;
+        summaryFeatures(j,8) = feat{j,1}.Percent_Pause_Present;
+        summaryFeatures(j,9) = above200;
+        summaryFeatures(j,10) = above500;
+        summaryFeatures(j,11) = above700;
+        summaryFeatures(j,12) = above1000;
+        summaryFeatures(j,13) = above2000;
+        summaryFeatures(j,14) = avgSPDomFreq(j);
+        summaryFeatures(j,15) = avgSPMeanFreq(j);
+        summaryFeatures(j,16) = maxSPDomFreq(j);
+        summaryFeatures(j,17) = maxSPMeanFreq(j);
+        summaryFeatures(j,18) = feat{j,1}.Standard_Deviation_Max_Frequency;
+        summaryFeatures(j,19) = feat{j,1}.Standard_Deviation_Mean_Frequency;
+        
+        %summaryFeatures(i,15) = audioName{i};
+        
+        extrPDx(j,1) = pDx(j,1); %PID
+        extrPDx(j,2) = pDx(j,29); %childage
+        extrPDx(j,3) = pDx(j,41); %NSp2PB
+        extrPDx(j,4) = pDx(j,42); %sp2fsumw
+        extrPDx(j,5) = pDx(j,46); %internalTmerged
+        extrPDx(j,6) = pDx(j,48); %PTSDSX
+        extrPDx(j,7) = pDx(j,70); %ExternalTmerged
+        extrPDx(j,8) = pDx(j,73); %INTdx
+        extrPDx(j,9) = pDx(j,80); %ChildGender
+        extrPDx(j,10) = pDx(j,126); %SP2FVsum
+        extrPDx(j,11) = pDx(j,225); %NSp2pV
+        j = j + 1;
+        clear above200 above500 above700 above1000 above2000
+    else
+        noSpeech{w} = matData(i).audioName;
+        w = w + 1;
+    end
 end
 Features = [extrPDx summaryFeatures];
 %% 10s Background Noise Debug
@@ -105,9 +141,17 @@ for j = 12:25
     avgArray1(x) = mean(FeatIntDx1(:,j));
     x = x + 1;
 end
-Variables = ["PID", "childage", "NSp2PB", "sp2fsumw", "internalTmerged", "PTSDSX", "ExternalTmerged", "INTdx", "ChildGender", "SP2FVsum", "NSp2pV", "Initial Speech Lag", "Final Speech Lag", "Average SP Length", "Standard Deviation of SP Length", "SP Total Occurance", "Average Speech Epoch Length", "Standard Deviation of Speech Epoch Length", "Speech Epoch Total Occurance", "Percent Pause Present", "Percent Speech Present", "Percent Freq Below 500Hz", "Percent Above 500Hz","Avg Epoch Dominant Frequency","Avg Epoch Mean Frequency","Max Epoch Dominant Frequency","Max Epoch Mean Frequency", "Standard Deviation Dominant Frequency", "Standard Deviation Mean Frequency"];
-indFeatSec = [12:15 17 18];
-indFeatPerc = [20:23];
+Variables = ["PID", "childage", "NSp2PB", "sp2fsumw", "internalTmerged",...
+    "PTSDSX", "ExternalTmerged", "INTdx", "ChildGender", "SP2FVsum",...
+    "NSp2pV", "Initial_Speech_Lag", "Final_Speech_Lag", "Average_SPause_Length",...
+    "STD_SPause_Length", "SPause_Total_Count", "Avg_Speech_Epoch_Length",...
+    "STD_Speech_Epoch_Length",...
+    "Percent_Pause_Present", "Percent_Above_200Hz", "Percent_Above_500Hz", "Percent_Above_700Hz", "Percent_Above_1000Hz"...
+    "Percent_Above_2000Hz","Avg_Epoch_Dominant_Freq","Avg_Epoch_Mean_Freq",...
+    "Max_Epoch_Dominant_Freq","Max_Epoch_Mean_Freq", "STD_Dominant_Freq",...
+    "STD_Mean_Freq"];
+indFeatSec = [12:18];
+indFeatPerc = [19:24];
 
 SecFeatIntDx0 = FeatIntDx0(:,indFeatSec);
 PercFeatIntDx0 = FeatIntDx0(:,indFeatPerc);
@@ -130,40 +174,68 @@ end
 
 featTitleSec = Variables(indFeatSec);
 featTitlePerc = Variables(indFeatPerc);
+indForIntDx0Sec = [1:2:2*length(indFeatSec)];
+indForIntDx1Sec = [2:2:2*(length(indFeatSec) + 1)];
+indForIntDx0Perc = [1:2:2*(length(indFeatPerc))];
+indForIntDx1Perc = [2:2:2*(length(indFeatPerc) + 1)];
+
+for r=1:length(indFeatSec)
+    featTitleFullSec{indForIntDx0Sec(r)} = char(['intDx0:',Variables(indFeatSec(r))]);
+    featTitleFullSec{indForIntDx1Sec(r)} = char(['intDx1:',Variables(indFeatSec(r))]);
+end
+
+for r=1:length(indFeatPerc)
+    featTitleFullPerc{indForIntDx0Perc(r)} = char(['indDx0:', Variables(indFeatPerc(r))]);
+    featTitleFullPerc{indForIntDx1Perc(r)} = char(['indDx1:', Variables(indFeatPerc(r))]);
+end
+
 f = 1;
-for q = 1:6
+for q = 1:length(indFeatSec)
     BigAssArray(:,q) = [SecFeatIntDx0(:,q); SecFeatIntDx1(:,q)];
     g(:,q) = [(f)*ones(size(SecFeatIntDx0(:,q))); (f+1)*ones(size(SecFeatIntDx1(:,q)))];
     f = f + 2;
 end
 
 c = 1;
-for s = 1:4
-    
+for s = 1:length(indFeatPerc)
     BigAssArray2(:,s) = [PercFeatIntDx0(:,s); PercFeatIntDx1(:,s)];
     g2(:,s) = [(c)*ones(size(PercFeatIntDx0(:,s))); (c+1)*ones(size(PercFeatIntDx1(:,s)))];
     c = c + 2;
 end
 
+x = reshape(BigAssArray,[],1);
+gg = reshape(g,[],1);
 
+x2 = reshape(BigAssArray2,[],1);
+gg2 = reshape(g2,[],1);
 
-x = [BigAssArray(:,1);BigAssArray(:,2);BigAssArray(:,3);BigAssArray(:,4);BigAssArray(:,5);BigAssArray(:,6);];
-gg = [g(:,1);g(:,2);g(:,3);g(:,4);g(:,5);g(:,6);];
+%x = [BigAssArray(:,1);BigAssArray(:,2);BigAssArray(:,3);BigAssArray(:,4);BigAssArray(:,5);BigAssArray(:,6);];%%
+%gg = [g(:,1);g(:,2);g(:,3);g(:,4);g(:,5);g(:,6);];
 
-x2 = [BigAssArray2(:,1);BigAssArray2(:,2);BigAssArray2(:,3);BigAssArray2(:,4)];
-gg2 = [g2(:,1);g2(:,2);g2(:,3);g2(:,4)];
+%x2 = [BigAssArray2(:,1);BigAssArray2(:,2);BigAssArray2(:,3);BigAssArray2(:,4)];
+%gg2 = [g2(:,1);g2(:,2);g2(:,3);g2(:,4)];
 
 figure
-boxplot(x,gg,'Labels',{'IntDx0: Init Speech Lag', 'IntDx1: Init Speech Lag', 'IntDx0: Fin Speech Lag', 'IntDx1: Fin Speech Lag', 'IntDx0: Avg SP Length', 'IntDx1: Avg SP Length', 'IntDx0: Std SP Length', 'IntDx1: Std SP Length', 'IntDx0: Avg Epoch Length', 'IntDx1: Avg Epoch Length', 'IntDx0: Std Epoch Length', 'IntDx1: Std Epoch Length'})
+boxplot(x,gg,'Labels',featTitleFullSec)
+%{
+{'IntDx0: Init Speech Lag', 'IntDx1: Init Speech Lag',...
+    'IntDx0: Fin Speech Lag', 'IntDx1: Fin Speech Lag',...
+    'IntDx0: Avg SPause Length', 'IntDx1: Avg SPause Length',...
+    'IntDx0: Std SPause Length', 'IntDx1: Std SPause Length', ...
+    'IntDx0: Avg Epoch Length', 'IntDx1: Avg Epoch Length',...
+    'IntDx0: Std Epoch Length', 'IntDx1: Std Epoch Length'})
+%}
 set(gca,'FontSize',10,'XTickLabelRotation',45)
 ylabel('Zscore')
-title('NO Epoch Filtering: IntDx Feature Boxplots')
+theTitle = ['PATIENT Epoch Filter: IntDx Feature Boxplots (IntDx0 N = ', num2str(length(FeatIntDx0(:,1))),', IntDx1 N = ', num2str(length(FeatIntDx1(:,1))),')'];
+title(theTitle)
 
 figure
-boxplot(x2,gg2,'Labels',{'IntDx0: % Pause Present', 'IntDx1: % Pause Present', 'IntDx0: % Speech Present', 'IntDx1: % Speech Present', 'IntDx0: % Freq Below 500Hz', 'IntDx1: % Freq Below 500Hz', 'IntDx0: % Above 500Hz', 'IntDx1: % Above 500Hz'})
+boxplot(x2,gg2,'Labels',featTitleFullPerc)
+%{'IntDx0: % Pause Present', 'IntDx1: % Pause Present', 'IntDx0: % Speech Present', 'IntDx1: % Speech Present', 'IntDx0: % Freq Below 500Hz', 'IntDx1: % Freq Below 500Hz', 'IntDx0: % Above 500Hz', 'IntDx1: % Above 500Hz'})
 set(gca,'FontSize',10,'XTickLabelRotation',45)
 ylabel('percent')
-title('NO Epoch Filtering: IntDx Feature Boxplots')
+title(theTitle)
 
 
 %SecFeatIntDx

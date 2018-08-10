@@ -21,32 +21,53 @@ for k = 1:length(matFiles)
 end
 
 for i = 1:length(matData)
-    audioName(i,1) = str2num(matData(i).audioName);
-    freq = matData(i).analysisTableSpeechDetails.Speech_Epoch_Max_Frequency;
-    freqTime = matData(i).analysisTableSpeechDetails.Speech_Start_Time;
-    epochLabel = matData(i).EpochLabel;
-    w=1;
+    if width(matData(i).analysisTableSummaryPatient) > 3
+        audioName(i,1) = str2num(matData(i).audioName);
+        freq = matData(i).analysisTableFilteredPauseDetailsPatient.SP_Duration;
+        freqTime = matData(i).analysisTableFilteredPauseDetailsPatient.SP_Start_Time;
+        
+        freq2 = matData(i).analysisTablePauseDetailsPatient.SP_Duration;
+        freqTime2 = matData(i).analysisTablePauseDetailsPatient.SP_Start_Time;
+        %epochLabel = matData(i).EpochLabel;
+        w=1;
+        %{
     for x=1:length(epochLabel)
         if char(epochLabel{x}) == 'B'
             indBuzzer(w) = x;
             w = w + 1;
-        end 
+        end
     end
-    vlineXVal = freqTime(indBuzzer);
-    f(i) = figure('visible', 'off', 'pos', [10 10 1920 1080]);
-    %f(i).PaperPosition = [50 250 900 600];
-    plot(freqTime,freq,'*')
-    hold on
-    vline(vlineXVal,'r')
-    hold off
-    Titlename = ['Individual Dominant Frequency Over Time, PID: ',num2str(audioName(i,1)), ',   IntDx: ', num2str(matData(i).patientDx(73)), ',    Age: ', num2str(matData(i).patientDx(29)), ',    Gender: ', num2str(matData(i).patientDx(80))];
-    figName = [num2str(audioName(i,1)),'_Individual_D_FreqOverTime' ];
-    title(Titlename)
-    xlabel("Speech Epoch Start Times (s)")
-    ylabel("Dominant Frequency (Hz)")
-    ylim([0 10000])
+        %}
+        %vlineXVal = freqTime(indBuzzer);
+        f(i) = figure('visible', 'off', 'pos', [10 10 1920 1080]);
+        %f(i).PaperPosition = [50 250 900 600];
+        plot(freqTime,freq,'*')
+        hold on
+        plot(freqTime2,freq2,'o')
+        lsline
+        legend('filtered SPause', 'unfiltered SPause', 'filtered SPause LS Line', 'unfiltered Spause LS Line')
+        %hold on
+        %vline(vlineXVal,'r')
+        %hold off
+        Titlename = ['PATIENT ONLY MEDIATED, Individual Filtered and Unfiltered SPause Duration Over Time, PID: ',num2str(audioName(i,1)), ',   IntDx: ', num2str(matData(i).patientDx(73)), ',    Age: ', num2str(matData(i).patientDx(29)), ',    Gender: ', num2str(matData(i).patientDx(80))];
+        figName = ['IntDx',num2str(matData(i).patientDx(73)),'_',num2str(audioName(i,1)),'_Individual_SPause_OverTime' ];        
+        title(Titlename)
+        xlabel("SPause Start Times (s)")
+        ylabel("SPause Duration (s)")
+        ylim([0 30])
+    else
+        audioName(i,1) = str2num(matData(i).audioName);
+        f(i) = figure('visible', 'off', 'pos', [10 10 1920 1080]);
+        plot(1,1,'*')
+        Titlename = ['PATIENT ONLY MEDIATED, Individual Filtered and Unfiltered SPause Duration Over Time Over Time, PID: ',num2str(audioName(i,1)), ',   IntDx: ', num2str(matData(i).patientDx(73)), ',    Age: ', num2str(matData(i).patientDx(29)), ',    Gender: ', num2str(matData(i).patientDx(80))];
+        figName = ['IntDx',num2str(matData(i).patientDx(73)),'_',num2str(audioName(i,1)),'_Individual_SPause_OverTime' ];
+        title(Titlename)
+        xlabel("SPause Start Times (s)")
+        ylabel("SPause Duration (s)")
+        ylim([0 30])
+    end
     saveas(f(i),figName,'png');
-    clear name audioName epochLabel indBuzzer freqTime freq Titlename figName
+    clear name audioName epochLabel indBuzzer freqTime freq freq2 freqTime2 Titlename figName
 end
 
 

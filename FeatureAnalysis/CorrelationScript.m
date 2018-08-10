@@ -1,5 +1,5 @@
 clear all, clc
-[~, titles] = xlsread('Excel\mcginnisdissertation8.2.16.UPDATED.VALUES.xlsx');
+[~, titles] = xlsread('mcginnisdissertation8.2.16.UPDATED.VALUES.xlsx');
 %% Assign Speech code values you wish to correlate
 PdxIndices = [29, 41, 42, 46, 48, 70, 71, 73, 77, 86, 87, 94:102, 103:118, 119, 126, 225];
 for y=1:length(PdxIndices)
@@ -33,52 +33,102 @@ for j =1:length(PdxIndices)
         end
         clear tempMatData
     end
-    
+    u = 1;
+    s = 1;
     for i = 1:length(matData)
-        currentPdx(i) = matData(i).patientDx(PdxIndices(j));
-        audioName{i,j} = str2num(matData(i).audioName);
-        feat = extractfield(matData(i),'analysisTableSummaryPatient');
-        avgSPDomFreq(i) = mean(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Max_Frequency);
-        stdSPDomFreq(i) = std(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Max_Frequency);
-        avgSPMeanFreq(i) = mean(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Mean_Frequency);
-        stdSPMeanFreq(i) = std(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Mean_Frequency);
-        maxSPDomFreq(i) = max(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Max_Frequency);
-        maxSPMeanFreq(i) = max(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Mean_Frequency);
-        
-        summaryFeatures(i,1) = feat{1,1}.Initial_Speech_Lag;
-        summaryFeatures(i,2) = feat{1,1}.Final_Speech_Lag;
-        summaryFeatures(i,3) = feat{1,1}.Average_SP_Length;
-        summaryFeatures(i,4) = feat{1,1}.Standard_Deviation_of_SP_Length;
-        summaryFeatures(i,5) = feat{1,1}.SP_Total_Occurance;
-        summaryFeatures(i,6) = feat{1,1}.Average_Speech_Epoch_Length;
-        summaryFeatures(i,7) = feat{1,1}.Standard_Deviation_of_Speech_Epoch_Length;
-        summaryFeatures(i,8) = feat{1,1}.Speech_Epoch_Total_Occurance;
-        summaryFeatures(i,9) = feat{1,1}.Percent_Pause_Present;
-        summaryFeatures(i,10) = feat{1,1}.Percent_Speech_Present;
-        summaryFeatures(i,11) = feat{1,1}.Percent_Freq_Below_500Hz;
-        summaryFeatures(i,12) = feat{1,1}.Percent_Above_500Hz;
-        summaryFeatures(i,13) = avgSPDomFreq(i);
-        summaryFeatures(i,14) = avgSPMeanFreq(i);
-        summaryFeatures(i,15) = maxSPDomFreq(i);
-        summaryFeatures(i,16) = maxSPMeanFreq(i);
-        summaryFeatures(i,17) = feat{1,1}.Standard_Deviation_Max_Frequency;
-        summaryFeatures(i,18) = feat{1,1}.Standard_Deviation_Mean_Frequency;
-        
+        if width(matData(i).analysisTableSummaryPatient) >= 14
+            currentPdx(u) = matData(i).patientDx(PdxIndices(j));
+            audioName{u,j} = str2num(matData(i).audioName);
+            feat = extractfield(matData(i),'analysisTableSummaryPatient');
+            avgSPDomFreq(u) = mean(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Max_Frequency);
+            avgSPMeanFreq(u) = mean(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Mean_Frequency);
+            maxSPDomFreq(u) = max(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Max_Frequency);
+            maxSPMeanFreq(u) = max(matData(i).analysisTableSpeechDetailsPatient.Speech_Epoch_Mean_Frequency);
+            energyMatrix = matData(i).energyMatrixPatientOnly;
+        if length(energyMatrix) > 1
+            above200raw = energyMatrix(3:end,:);
+            above500raw = energyMatrix(6:end,:);
+            above700raw = energyMatrix(8:end,:);
+            above1000raw = energyMatrix(11:end,:);
+            above2000raw = energyMatrix(21:end,:);
+            
+            
+            above200col=  sum(above200raw);
+            above500col = sum(above500raw);
+            above700col = sum(above700raw);
+            above1000col = sum(above1000raw);
+            above2000col = sum(above2000raw);
+            
+            above200 = mean(above200col);
+            above500 = mean(above500col);
+            above700 = mean(above700col);
+            above1000 = mean(above1000col);
+            above2000 = mean(above2000col);
+        else
+            above200 = 0;
+            above500 = 0;
+            above700 = 0;
+            above1000 = 0;
+            above2000 = 0;
+        end
+
+            summaryFeatures(u,1) = feat{1,1}.Initial_Speech_Lag;
+            summaryFeatures(u,2) = feat{1,1}.Final_Speech_Lag;
+            summaryFeatures(u,3) = feat{1,1}.Average_SP_Length;
+            summaryFeatures(u,4) = feat{1,1}.Standard_Deviation_of_SP_Length;
+            summaryFeatures(u,5) = feat{1,1}.SP_Total_Occurance;
+            summaryFeatures(u,6) = feat{1,1}.Average_Speech_Epoch_Length;
+            summaryFeatures(u,7) = feat{1,1}.Standard_Deviation_of_Speech_Epoch_Length;
+            summaryFeatures(u,8) = feat{1,1}.Percent_Pause_Present;
+            summaryFeatures(u,9) = above200;
+            summaryFeatures(u,10) = above500;
+            summaryFeatures(u,11) = above700;
+            summaryFeatures(u,12) = above1000;
+            summaryFeatures(u,13) = above2000;
+            summaryFeatures(u,14) = avgSPDomFreq(u);
+            summaryFeatures(u,15) = avgSPMeanFreq(u);
+            summaryFeatures(u,16) = maxSPDomFreq(u);
+            summaryFeatures(u,17) = maxSPMeanFreq(u);
+            summaryFeatures(u,18) = mean(matData(i).analysisTableSpeechDetailsPatient.Mean_Perceptual_Spectral_Centroid);
+            summaryFeatures(u,19) = mean(matData(i).analysisTableSpeechDetailsPatient.Max_Perceptual_Spectral_Centroid);
+            summaryFeatures(u,20) = mean(matData(i).analysisTableSpeechDetailsPatient.Min_Perceptual_Spectral_Centroid);
+            summaryFeatures(u,21) = feat{1,1}.Standard_Deviation_Max_Frequency;
+            summaryFeatures(u,22) = feat{1,1}.Standard_Deviation_Mean_Frequency;
+            summaryFeatures(u,23) = mean(matData(i).analysisTableSpeechDetailsPatient.Std_Perceptual_Spectral_Centroid);
+            summaryFeatures(u,24) = feat{1,1}.Dom_Freq_Slope;
+            summaryFeatures(u,25) = feat{1,1}.Mean_Freq_Slope;
+            summaryFeatures(u,26) = feat{1,1}.PC_Mean_Slope;
+            summaryFeatures(u,27) = feat{1,1}.PC_Max_Slope;
+            summaryFeatures(u,28) = feat{1,1}.PC_Min_Slope;
+            
+            u = u + 1;
+        else
+            noPatientEpochs(j,s) = str2num(matData(i).audioName);
+            s = s + 1;
+        end
+        clearvars -except summaryFeatures currentPdx audioName...
+            avgSPDomFreq avgSPMeanFreq maxSPDomFreq maxSPMeanFreq...
+            T matFiles myFolder filePattern PdxIndices PdxName j...
+            noPatientEpochs matData i u s 
     end
     N(j) = length(summaryFeatures(:,1));
     
-    for w=1:18
+    for w=1:length(summaryFeatures(1,:))
         [rho(w), pval(w)] = corr(summaryFeatures(:,w),currentPdx','type','spearman');
     end
     
     rho = [rho N(j)];
     pval = [pval N(j)];
     
-    RowNames = {'Initial_Speech_Lag', 'Final_Speech_Lag', 'Average_SP_Length','Standard_Deviation_of_SP_Length',...
-        'SpeechPause_Total_Occurance', 'Average_Speech_Epoch_Length', 'Std_of_Speech_Epoch_Length', 'Speech_Epoch_Total_Occurance',...
-        'Percent_Pause_Present', 'Percent_Speech_Present', 'Percent_Freq_Below_500Hz', 'Percent_Above_500Hz',...
-        'Avg_Epoch_Dominant_Freq','Avg_Epoch_Mean_Freq','Max_Epoch_Dominant_Freq','Max_Epoch_Mean_Freq',...
-        'Standard_Deviation_Max_Frequency','Standard_Deviation_Mean_Frequency', 'N'};
+    RowNames = {'Initial_Speech_Lag', 'Final_Speech_Lag', 'Avg_SPause_Length','STD_SPause_Length',...
+        'SPause_Total_Count', 'Avg_Speech_Epoch_Length', 'Std_of_Speech_Epoch_Length',...
+        'Percent_Pause_Present', 'Percent_Freq_Above_200Hz', 'Percent_Above_500Hz','Percent_Above_700Hz',...
+        'Percent_Above_1000Hz','Percent_Above_2000Hz','Avg_Epoch_Dominant_Freq','Avg_Epoch_Mean_Freq',...
+        'Max_Epoch_Dominant_Freq','Max_Epoch_Mean_Freq','Avg_Epoch_Mean_Spectral_Centroid',...
+        'Avg_Epoch_Max_Spectral_Centroid','Avg_Epoch_Min_Spectral_Centroid' ...
+        'Std_Max_Frequency','Std_Mean_Frequency','Std_SpectralCentroid',...
+        'Dom_Freq_Slope', 'Mean_Freq_Slope', 'Mean_Spectral_Centroid_Slope',...
+        'Max_Spectral_Centroid_Slope', 'Min_Spectral_Centroid_Slope','N'};
     
 
     Variables{1} = [PdxName{j},'_rho'];
@@ -90,7 +140,8 @@ for j =1:length(PdxIndices)
     else
         T{j} = table(rho',pval','VariableNames', Variables);
     end
-    clear Variables rho pval summaryFeatures feat avgSPDomFreq stdSPDomFreq avgSPMeanFreq stdSPMeanFreq currentPdx matData
+    %clear Variables rho pval summaryFeatures feat avgSPDomFreq stdSPDomFreq avgSPMeanFreq stdSPMeanFreq currentPdx matData
+    clearvars -except T matFiles myFolder filePattern PdxIndices PdxName j noPatientEpochs
 end
 
 T = [T{:}];
